@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hekmon/liveterm"
+	"github.com/mattn/go-runewidth"
 )
 
 var (
@@ -24,12 +25,17 @@ var (
 func AddBar(total uint64) (bar *Bar) {
 	bar = &Bar{
 		// ui
-		fill:     Fill,
-		head:     Head,
-		empty:    Empty,
-		leftEnd:  LeftEnd,
-		rightEnd: RightEnd,
-		width:    Width,
+		fill:          Fill,
+		fillWidth:     runewidth.RuneWidth(Fill),
+		head:          Head,
+		headWidth:     runewidth.RuneWidth(Head),
+		empty:         Empty,
+		emptyWidth:    runewidth.RuneWidth(Empty),
+		leftEnd:       LeftEnd,
+		leftEndWidth:  runewidth.RuneWidth(LeftEnd),
+		rightEnd:      RightEnd,
+		rightEndWidth: runewidth.RuneWidth(RightEnd),
+		width:         Width,
 		// progress
 		total: total,
 	}
