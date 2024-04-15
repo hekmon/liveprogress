@@ -37,7 +37,8 @@ func AddBar(total uint64) (bar *Bar) {
 		rightEndWidth: runewidth.RuneWidth(RightEnd),
 		width:         Width,
 		// progress
-		total: total,
+		createdAt: time.Now(),
+		total:     total,
 	}
 	itemsAccess.Lock()
 	items = append(items, bar)

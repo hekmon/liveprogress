@@ -4,6 +4,7 @@ import (
 	"math"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"github.com/hekmon/liveterm"
 	"github.com/mattn/go-runewidth"
@@ -16,13 +17,29 @@ const (
 
 var (
 	// These values are copied when you call NewBar()
+	LeftEnd  rune = '[' // LeftEnd is the default character in the left most part of the progress indicator
 	Fill     rune = '=' // Fill is the default character representing completed progress
 	Head     rune = '>' // Head is the default character that moves when progress is updated
 	Empty    rune = '-' // Empty is the default character that represents the empty progress
-	LeftEnd  rune = '[' // LeftEnd is the default character in the left most part of the progress indicator
 	RightEnd rune = ']' // RightEnd is the default character in the right most part of the progress indicator
 	Width         = 0   // Width is the default width of the progress bar. 0 for automatic width.
 )
+
+func SetASCIIStyle() {
+	LeftEnd = '['
+	Fill = '='
+	Head = '>'
+	Empty = '-'
+	RightEnd = ']'
+}
+
+func SetUTF8ArrowsStyle() {
+	LeftEnd = '◂'
+	Fill = '⎯'
+	Head = '→'
+	Empty = ' '
+	RightEnd = '▸'
+}
 
 type Bar struct {
 	// ui
@@ -41,6 +58,7 @@ type Bar struct {
 	current atomic.Uint64
 	total   uint64
 	// decorators
+	createdAt    time.Time
 	prependFuncs []DecoratorFunc
 	appendFuncs  []DecoratorFunc
 }
