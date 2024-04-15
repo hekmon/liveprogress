@@ -21,8 +21,18 @@ var (
 	itemsAccess sync.Mutex
 )
 
-func AddBar() (bar *Bar) {
-	bar = &Bar{}
+func AddBar(total uint64) (bar *Bar) {
+	bar = &Bar{
+		// ui
+		fill:     Fill,
+		head:     Head,
+		empty:    Empty,
+		leftEnd:  LeftEnd,
+		rightEnd: RightEnd,
+		width:    Width,
+		// progress
+		total: total,
+	}
 	itemsAccess.Lock()
 	items = append(items, bar)
 	itemsAccess.Unlock()
@@ -30,6 +40,9 @@ func AddBar() (bar *Bar) {
 }
 
 func AddCustom(custom fmt.Stringer) {
+	if custom == nil {
+		return
+	}
 	itemsAccess.Lock()
 	items = append(items, custom)
 	itemsAccess.Unlock()
@@ -60,6 +73,9 @@ func RemoveBar(bar *Bar) {
 }
 
 func RemoveCustom(item fmt.Stringer) {
+	if item == nil {
+		return
+	}
 	itemsAccess.Lock()
 	for index, registered := range items {
 		if item == registered {
@@ -78,6 +94,7 @@ func Start() {
 }
 
 func Stop(clear bool) {
+	// if clear is false, liveterm will call updater one last time (and thus locking the mutex)
 	liveterm.Stop(clear)
 	RemoveAll()
 }
@@ -92,14 +109,16 @@ func updater() (lines []string) {
 	return
 }
 
-type customLine struct {
-	fx func() string
+type StringGenerator func() string
+
+type stringerWrapper struct {
+	sg StringGenerator
 }
 
-func (c *customLine) String() string {
-	return c.fx()
+func (sw *stringerWrapper) String() string {
+	return sw.sg()
 }
 
-func NewCustomLine(fx func() string) fmt.Stringer {
-	return &customLine{fx: fx}
+func NewCustomLine(sg StringGenerator) fmt.Stringer {
+	return &stringerWrapper{sg: sg}
 }
