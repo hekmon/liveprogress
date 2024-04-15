@@ -4,14 +4,14 @@ import (
 	"math"
 	"strings"
 	"sync/atomic"
-	"unicode/utf8"
 
 	"github.com/hekmon/liveterm"
+	"github.com/mattn/go-runewidth"
 )
 
 const (
 	defaultProgressWidth = 70
-	minimumProgressWidth = 6
+	minimumProgressWidth = 12
 )
 
 var (
@@ -67,46 +67,66 @@ func (b *Bar) String() string {
 	// Prepend fx
 	pfx := make([]string, len(b.prependFuncs))
 	pfxLen := 0
+	pfxWidth := 0
 	for index, fx := range b.prependFuncs {
 		pfx[index] = fx(b)
-		pfxLen += utf8.RuneCountInString(pfx[index])
+		pfxLen += len(pfx[index])
+		if b.width == 0 {
+			pfxWidth += runewidth.StringWidth(pfx[index])
+		}
 	}
 	// Append fx
 	afx := make([]string, len(b.appendFuncs))
 	afxLen := 0
+	afxWidth := 0
 	for index, fx := range b.appendFuncs {
 		afx[index] = fx(b)
-		afxLen += utf8.RuneCountInString(afx[index])
+		afxLen += len(afx[index])
+		if b.width == 0 {
+			afxWidth += runewidth.StringWidth(afx[index])
+		}
 	}
 	// Progress
-	progressWidth := b.width
-	if progressWidth == 0 {
+	var progressWidth int
+	if b.width == 0 {
 		// Calculate the width of the progress bar
 		termCols, _ := liveterm.GetTermSize()
-		progressWidth = termCols - pfxLen - afxLen
+		progressWidth = termCols - pfxWidth - afxWidth
 		if progressWidth < minimumProgressWidth {
 			// this will break line
 			progressWidth = defaultProgressWidth
 		}
+	} else {
+		progressWidth = b.width
 	}
+	enclosureWidth := runewidth.RuneWidth(b.leftEnd) + runewidth.RuneWidth(b.rightEnd)
+	barWidth := progressWidth - enclosureWidth
+	progressRatio := b.Progress()
+	if progressRatio > 1 {
+		progressRatio = 1
+	}
+	completionWidth := int(math.Round(progressRatio * float64(barWidth)))
 	var progress strings.Builder
 	progress.Grow(progressWidth)
 	progress.WriteRune(LeftEnd)
-	current := int(math.Round(b.Progress() * float64(progressWidth-2)))
-	for i := 0; i < progressWidth-2; i++ {
-		switch {
-		case i < current:
+	completionActualWidth := 0
+	if completionWidth >= runewidth.RuneWidth(b.head) {
+		for i := 0; i < (completionWidth-runewidth.RuneWidth(b.head))/runewidth.RuneWidth(b.fill); i++ {
 			progress.WriteRune(b.fill)
-		case i == current:
-			progress.WriteRune(b.head)
-		default:
-			progress.WriteRune(b.empty)
+			completionActualWidth += runewidth.RuneWidth(b.fill)
 		}
+		progress.WriteRune(b.head)
+		completionActualWidth += runewidth.RuneWidth(b.head)
+	} else {
+		completionActualWidth = 0
+	}
+	for i := 0; i < barWidth-completionActualWidth; i++ {
+		progress.WriteRune(b.empty)
 	}
 	progress.WriteRune(RightEnd)
 	// Assemble
 	var builder strings.Builder
-	builder.Grow(pfxLen + progress.Len() + afxLen - builder.Cap())
+	builder.Grow(pfxLen + progress.Len() + afxLen)
 	for _, line := range pfx {
 		builder.WriteString(line)
 	}
