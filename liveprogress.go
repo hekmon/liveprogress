@@ -40,6 +40,7 @@ func AddBar(total uint64) (bar *Bar) {
 		createdAt: time.Now(),
 		total:     total,
 	}
+	bar.enclosureWidth = bar.leftEndWidth + bar.rightEndWidth
 	itemsAccess.Lock()
 	items = append(items, bar)
 	itemsAccess.Unlock()

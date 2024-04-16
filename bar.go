@@ -43,17 +43,18 @@ func SetUTF8ArrowsStyle() {
 
 type Bar struct {
 	// ui
-	fill          rune
-	fillWidth     int
-	head          rune
-	headWidth     int
-	empty         rune
-	emptyWidth    int
-	leftEnd       rune
-	leftEndWidth  int
-	rightEnd      rune
-	rightEndWidth int
-	width         int
+	fill           rune
+	fillWidth      int
+	head           rune
+	headWidth      int
+	empty          rune
+	emptyWidth     int
+	leftEnd        rune
+	leftEndWidth   int
+	rightEnd       rune
+	rightEndWidth  int
+	enclosureWidth int
+	width          int
 	// progress
 	current atomic.Uint64
 	total   uint64
@@ -121,24 +122,28 @@ func (b *Bar) String() string {
 		progressWidth = termCols - pfxWidth - afxWidth
 		if progressWidth < minimumProgressWidth {
 			// this will break line
-			progressWidth = defaultProgressWidth
+			progressWidth = minimumProgressWidth
 		}
 	case b.width < minimumProgressWidth:
 		progressWidth = minimumProgressWidth
 	default:
 		progressWidth = b.width
 	}
-	enclosureWidth := b.leftEndWidth + b.rightEndWidth
-	barWidth := progressWidth - enclosureWidth
+	progress.Grow(progressWidth)
+	progress.WriteRune(LeftEnd)
+	barWidth := progressWidth - b.enclosureWidth
 	progressRatio := b.Progress()
 	if progressRatio > 1 {
 		progressRatio = 1
 	}
 	completionWidth := int(math.Round(progressRatio * float64(barWidth)))
-	progress.Grow(progressWidth)
-	progress.WriteRune(LeftEnd)
 	completionActualWidth := 0
-	if completionWidth >= b.headWidth {
+	if progressRatio == 1 {
+		for i := 0; i < completionWidth/b.fillWidth; i++ {
+			progress.WriteRune(b.fill)
+			completionActualWidth += b.fillWidth
+		}
+	} else if completionWidth >= b.headWidth {
 		for i := 0; i < (completionWidth-b.headWidth)/b.fillWidth; i++ {
 			progress.WriteRune(b.fill)
 			completionActualWidth += b.fillWidth
