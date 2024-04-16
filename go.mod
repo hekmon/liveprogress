@@ -2,10 +2,8 @@ module github.com/hekmon/liveprogress
 
 go 1.18
 
-replace github.com/hekmon/liveterm => /Users/doudou/Documents/Perso/GoProjects/liveterm
-
 require (
-	github.com/hekmon/liveterm v1.0.0
+	github.com/hekmon/liveterm v0.0.0-20240416111801-b7f0cc3b583b
 	github.com/mattn/go-runewidth v0.0.15
 )
 
