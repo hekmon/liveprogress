@@ -1,4 +1,4 @@
-module github.com/hekmon/termprogress
+module github.com/hekmon/liveprogress
 
 go 1.18
 
