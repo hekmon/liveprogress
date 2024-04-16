@@ -67,28 +67,32 @@ type ProgressBar struct {
 // DecoratorFunc is a function that can be prepended and appended to the progress bar
 type DecoratorFunc func(pb *ProgressBar) string
 
-func (pb *ProgressBar) Add(value uint64) {
-	pb.current.Add(value)
-}
-
-func (pb *ProgressBar) CompareAndSwap(expectedCurrent, newCurrent uint64) bool {
-	return pb.current.CompareAndSwap(expectedCurrent, newCurrent)
-}
-
 func (pb *ProgressBar) Current() uint64 {
 	return pb.current.Load()
 }
 
-func (pb *ProgressBar) Inc() {
-	pb.Add(1)
+func (pb *ProgressBar) CurrentAdd(value uint64) {
+	pb.current.Add(value)
+}
+
+func (pb *ProgressBar) CurrentCompareAndSwap(expectedCurrent, newCurrent uint64) bool {
+	return pb.current.CompareAndSwap(expectedCurrent, newCurrent)
+}
+
+func (pb *ProgressBar) CurrentSet(value uint64) {
+	pb.current.Store(value)
+}
+
+func (pb *ProgressBar) CurrentSwap(value uint64) (oldValue uint64) {
+	return pb.current.Swap(value)
+}
+
+func (pb *ProgressBar) CurrentIncrement() {
+	pb.CurrentAdd(1)
 }
 
 func (pb *ProgressBar) Progress() float64 {
 	return float64(pb.current.Load()) / float64(pb.total)
-}
-
-func (pb *ProgressBar) Set(value uint64) {
-	pb.current.Store(value)
 }
 
 func (pb *ProgressBar) String() string {
