@@ -10,7 +10,6 @@ import (
 type SHA256Progress struct {
 	source    *readerCounter
 	hasher    *hasherReporter
-	computed  bool
 	hash      []byte
 	computing sync.Mutex
 }
@@ -30,7 +29,7 @@ func New(reader io.Reader, totalBytes int) *SHA256Progress {
 func (hp *SHA256Progress) ComputeHash(reportWritten func(uint64)) (err error) {
 	defer hp.computing.Unlock()
 	hp.computing.Lock()
-	if hp.computed {
+	if hp.hash != nil {
 		return
 	}
 	// Prepare the hasher
@@ -43,13 +42,12 @@ func (hp *SHA256Progress) ComputeHash(reportWritten func(uint64)) (err error) {
 		return
 	}
 	hp.hash = hp.hasher.GetCurrentHash()
-	hp.computed = true
 	hp.hasher = nil
 	return
 }
 
 func (hp *SHA256Progress) GetCurrentHash() []byte {
-	if hp.computed {
+	if hp.hash != nil {
 		return hp.hash
 	}
 	return hp.hasher.GetCurrentHash()

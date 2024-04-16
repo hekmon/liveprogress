@@ -21,19 +21,19 @@ var (
 
 func main() {
 	// Config
-	liveprogress.SetProgressStyleUTF8Arrows()
+	liveprogress.Output = os.Stdout
 	liveprogress.Start()
 	// Go
-	hashRandom(size7G)
-	hashRandom(size8G)
-	hashRandom(size3G)
+	hashRandom(size7G, liveprogress.BarStyleUTF8Arrows())
+	hashRandom(size8G, liveprogress.BarStyleASCII())
+	hashRandom(size3G, liveprogress.BarStyleUTF8Arrows())
 	liveprogress.AddCustomLine(spinner.Next)
 	// Wait
 	workers.Wait()
 	liveprogress.Stop(true)
 }
 
-func hashRandom(size int) {
+func hashRandom(size int, style liveprogress.BarStyle) {
 	// Open random
 	fd, err := os.Open("/dev/random")
 	if err != nil {
@@ -42,7 +42,7 @@ func hashRandom(size int) {
 	// Create the hasher
 	hasher := New(fd, size)
 	// Create the hasher progress bar
-	bar := liveprogress.AddBar(uint64(size))
+	bar := liveprogress.AddBar(0, uint64(size), style)
 	bar.PrependFunc(func(bar *liveprogress.Bar) string {
 		return fmt.Sprintf("Hashing %d bytes ", size)
 	})
