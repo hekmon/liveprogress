@@ -30,28 +30,25 @@ func (cl *CustomLine) String() string {
 	return cl.generator()
 }
 
-func AddBar(total uint64) (pb *Bar) {
+func AddBar(width int, total uint64, style BarStyle) (pb *Bar) {
 	if total == 0 {
 		return
 	}
 	pb = &Bar{
-		// Copy from current config
-		fill:          Fill,
-		fillWidth:     runewidth.RuneWidth(Fill),
-		head:          Head,
-		headWidth:     runewidth.RuneWidth(Head),
-		empty:         Empty,
-		emptyWidth:    runewidth.RuneWidth(Empty),
-		leftEnd:       LeftEnd,
-		leftEndWidth:  runewidth.RuneWidth(LeftEnd),
-		rightEnd:      RightEnd,
-		rightEndWidth: runewidth.RuneWidth(RightEnd),
-		width:         Width,
+		// ui
+		style: style,
+		styleWidth: barStyleWidth{
+			LeftEnd:  runewidth.RuneWidth(style.LeftEnd),
+			Fill:     runewidth.RuneWidth(style.Fill),
+			Head:     runewidth.RuneWidth(style.Head),
+			Empty:    runewidth.RuneWidth(style.Empty),
+			RightEnd: runewidth.RuneWidth(style.RightEnd),
+		},
+		width: width,
 		// progress
 		createdAt: time.Now(),
 		total:     total,
 	}
-	pb.enclosureWidth = pb.leftEndWidth + pb.rightEndWidth
 	itemsAccess.Lock()
 	items = append(items, pb)
 	itemsAccess.Unlock()

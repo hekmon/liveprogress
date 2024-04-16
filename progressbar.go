@@ -13,50 +13,50 @@ import (
 )
 
 const (
-	defaultProgressWidth = 70
 	minimumProgressWidth = 12
 )
 
-var (
-	// These values are copied when you call NewBar()
-	LeftEnd  rune = '[' // LeftEnd is the default character in the left most part of the progress indicator
-	Fill     rune = '=' // Fill is the default character representing completed progress
-	Head     rune = '>' // Head is the default character that moves when progress is updated
-	Empty    rune = '-' // Empty is the default character that represents the empty progress
-	RightEnd rune = ']' // RightEnd is the default character in the right most part of the progress indicator
-	Width         = 0   // Width is the default width of the progress bar. 0 for automatic width.
-)
-
-func SetProgressStyleASCII() {
-	LeftEnd = '['
-	Fill = '='
-	Head = '>'
-	Empty = '-'
-	RightEnd = ']'
+type BarStyle struct {
+	LeftEnd  rune // LeftEnd is the default character in the left most part of the progress indicator
+	Fill     rune // Fill is the default character representing completed progress
+	Head     rune // Head is the default character that moves when progress is updated
+	Empty    rune // Empty is the default character that represents the empty progress
+	RightEnd rune // RightEnd is the default character in the right most part of the progress indicator
 }
 
-func SetProgressStyleUTF8Arrows() {
-	LeftEnd = '◂'
-	Fill = '⎯'
-	Head = '→'
-	Empty = ' '
-	RightEnd = '▸'
+func BarStyleASCII() BarStyle {
+	return BarStyle{
+		LeftEnd:  '[',
+		Fill:     '=',
+		Head:     '>',
+		Empty:    '-',
+		RightEnd: ']',
+	}
+}
+
+func BarStyleUTF8Arrows() BarStyle {
+	return BarStyle{
+		LeftEnd:  '◂',
+		Fill:     '⎯',
+		Head:     '→',
+		Empty:    ' ',
+		RightEnd: '▸',
+	}
+}
+
+type barStyleWidth struct {
+	LeftEnd  int
+	Fill     int
+	Head     int
+	Empty    int
+	RightEnd int
 }
 
 type Bar struct {
 	// ui
-	fill           rune
-	fillWidth      int
-	head           rune
-	headWidth      int
-	empty          rune
-	emptyWidth     int
-	leftEnd        rune
-	leftEndWidth   int
-	rightEnd       rune
-	rightEndWidth  int
-	enclosureWidth int
-	width          int
+	style      BarStyle
+	styleWidth barStyleWidth
+	width      int
 	// progress
 	current atomic.Uint64
 	total   uint64
@@ -143,8 +143,8 @@ func (pb *Bar) String() string {
 		progressWidth = pb.width
 	}
 	progress.Grow(progressWidth)
-	progress.WriteRune(pb.leftEnd)
-	barWidth := progressWidth - pb.enclosureWidth
+	progress.WriteRune(pb.style.LeftEnd)
+	barWidth := progressWidth - pb.styleWidth.LeftEnd - pb.styleWidth.RightEnd
 	progressRatio := pb.Progress()
 	if progressRatio > 1 {
 		progressRatio = 1
@@ -152,22 +152,22 @@ func (pb *Bar) String() string {
 	completionWidth := int(math.Round(progressRatio * float64(barWidth)))
 	completionActualWidth := 0
 	if progressRatio == 1 {
-		for i := 0; i < completionWidth/pb.fillWidth; i++ {
-			progress.WriteRune(pb.fill)
-			completionActualWidth += pb.fillWidth
+		for i := 0; i < completionWidth/pb.styleWidth.Fill; i++ {
+			progress.WriteRune(pb.style.Fill)
+			completionActualWidth += pb.styleWidth.Fill
 		}
-	} else if completionWidth >= pb.headWidth {
-		for i := 0; i < (completionWidth-pb.headWidth)/pb.fillWidth; i++ {
-			progress.WriteRune(pb.fill)
-			completionActualWidth += pb.fillWidth
+	} else if completionWidth >= pb.styleWidth.Head {
+		for i := 0; i < (completionWidth-pb.styleWidth.Head)/pb.styleWidth.Fill; i++ {
+			progress.WriteRune(pb.style.Fill)
+			completionActualWidth += pb.styleWidth.Fill
 		}
-		progress.WriteRune(pb.head)
-		completionActualWidth += pb.headWidth
+		progress.WriteRune(pb.style.Head)
+		completionActualWidth += pb.styleWidth.Head
 	}
 	for i := 0; i < barWidth-completionActualWidth; i++ {
-		progress.WriteRune(pb.empty)
+		progress.WriteRune(pb.style.Empty)
 	}
-	progress.WriteRune(pb.rightEnd)
+	progress.WriteRune(pb.style.RightEnd)
 	// Assemble
 	var assembler strings.Builder
 	assembler.Grow(pfxLen + progress.Len() + afxLen)
