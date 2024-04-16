@@ -143,7 +143,7 @@ func (pb *Bar) String() string {
 		progressWidth = pb.width
 	}
 	progress.Grow(progressWidth)
-	progress.WriteRune(LeftEnd)
+	progress.WriteRune(pb.leftEnd)
 	barWidth := progressWidth - pb.enclosureWidth
 	progressRatio := pb.Progress()
 	if progressRatio > 1 {
@@ -167,7 +167,7 @@ func (pb *Bar) String() string {
 	for i := 0; i < barWidth-completionActualWidth; i++ {
 		progress.WriteRune(pb.empty)
 	}
-	progress.WriteRune(RightEnd)
+	progress.WriteRune(pb.rightEnd)
 	// Assemble
 	var assembler strings.Builder
 	assembler.Grow(pfxLen + progress.Len() + afxLen)

@@ -35,7 +35,7 @@ func AddBar(total uint64) (pb *Bar) {
 		return
 	}
 	pb = &Bar{
-		// ui
+		// Copy from current config
 		fill:          Fill,
 		fillWidth:     runewidth.RuneWidth(Fill),
 		head:          Head,
