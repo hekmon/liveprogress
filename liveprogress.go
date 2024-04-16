@@ -23,6 +23,9 @@ var (
 )
 
 func AddBar(total uint64) (pb *ProgressBar) {
+	if total == 0 {
+		return
+	}
 	pb = &ProgressBar{
 		// ui
 		fill:          Fill,
