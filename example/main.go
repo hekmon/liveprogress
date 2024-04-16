@@ -12,7 +12,7 @@ import (
 var (
 	size1G = 1 * 1024 * 1024 * 1024
 	size3G = 3 * 1024 * 1024 * 1024
-	size7G = 7 * 1024 * 1024 * 1024
+	size7G = 5 * 1024 * 1024 * 1024
 )
 
 func main() {
@@ -38,7 +38,8 @@ func main() {
 	}()
 	// Wait
 	time.Sleep(10 * time.Millisecond)
-	liveprogress.AddCustom(&liveprogress.Spinner{})
+	var spinner liveprogress.Spinner
+	liveprogress.AddCustomLine(spinner.Next)
 	workers.Wait()
 	liveprogress.Stop(true)
 }

@@ -9,7 +9,7 @@ type Spinner struct {
 	lastShow int
 }
 
-func (s *Spinner) String() string {
+func (s *Spinner) Next() string {
 	s.lastShow++
 	if s.lastShow >= len(spinnerStates) {
 		s.lastShow = 0

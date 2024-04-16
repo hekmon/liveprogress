@@ -22,6 +22,14 @@ var (
 	itemsAccess sync.Mutex
 )
 
+type CustomLine struct {
+	generator func() string
+}
+
+func (cl *CustomLine) String() string {
+	return cl.generator()
+}
+
 func AddBar(total uint64) (pb *Bar) {
 	if total == 0 {
 		return
@@ -50,13 +58,17 @@ func AddBar(total uint64) (pb *Bar) {
 	return
 }
 
-func AddCustom(custom fmt.Stringer) {
-	if custom == nil {
+func AddCustomLine(generator func() string) (cl *CustomLine) {
+	if generator == nil {
 		return
 	}
 	itemsAccess.Lock()
-	items = append(items, custom)
+	cl = &CustomLine{
+		generator: generator,
+	}
+	items = append(items, cl)
 	itemsAccess.Unlock()
+	return
 }
 
 func Bypass() io.Writer {
@@ -83,13 +95,13 @@ func RemoveBar(pb *Bar) {
 	itemsAccess.Unlock()
 }
 
-func RemoveCustom(item fmt.Stringer) {
-	if item == nil {
+func RemoveCustomLine(cl *CustomLine) {
+	if cl == nil {
 		return
 	}
 	itemsAccess.Lock()
-	for index, registered := range items {
-		if item == registered {
+	for index, item := range items {
+		if item, ok := item.(*CustomLine); ok && item == cl {
 			items = append(items[:index], items[index+1:]...)
 			break
 		}
@@ -118,18 +130,4 @@ func updater() (lines []string) {
 	}
 	itemsAccess.Unlock()
 	return
-}
-
-type StringGenerator func() string
-
-type stringerWrapper struct {
-	sg StringGenerator
-}
-
-func (sw *stringerWrapper) String() string {
-	return sw.sg()
-}
-
-func NewCustomLine(sg StringGenerator) fmt.Stringer {
-	return &stringerWrapper{sg: sg}
 }
