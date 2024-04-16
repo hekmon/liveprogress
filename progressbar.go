@@ -1,6 +1,7 @@
 package liveprogress
 
 import (
+	"fmt"
 	"math"
 	"strings"
 	"sync"
@@ -182,4 +183,58 @@ func (pb *Bar) String() string {
 
 func (pb *Bar) Total() uint64 {
 	return pb.total
+}
+
+/*
+	Decorators
+*/
+
+func (pb *Bar) PrependFunc(fx DecoratorFunc) {
+	pb.decoratorsAccess.Lock()
+	pb.prependFuncs = append(pb.prependFuncs, fx)
+	pb.decoratorsAccess.Unlock()
+}
+
+func (pb *Bar) AppendFunc(fx DecoratorFunc) {
+	pb.decoratorsAccess.Lock()
+	pb.appendFuncs = append(pb.appendFuncs, fx)
+	pb.decoratorsAccess.Unlock()
+}
+
+func (pb *Bar) PrependPercent() {
+	pb.PrependFunc(func(pb *Bar) string {
+		return fmt.Sprintf("%3d%% ", int(math.Round(pb.Progress()*100)))
+	})
+}
+
+func (pb *Bar) AppendPercent() {
+	pb.AppendFunc(func(pb *Bar) string {
+		return fmt.Sprintf(" %3d%%", int(math.Round(pb.Progress()*100)))
+	})
+}
+
+func (pb *Bar) PrependTimeElapsed() {
+	pb.PrependFunc(func(pb *Bar) string {
+		return fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second))
+	})
+}
+
+func (pb *Bar) AppendTimeElapsed() {
+	pb.AppendFunc(func(pb *Bar) string {
+		return fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second))
+	})
+}
+
+func (pb *Bar) PrependTimeRemaining() {
+	pb.PrependFunc(func(pb *Bar) string {
+		progress := pb.Progress()
+		return fmt.Sprintf("%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))
+	})
+}
+
+func (pb *Bar) AppendTimeRemaining() {
+	pb.AppendFunc(func(pb *Bar) string {
+		progress := pb.Progress()
+		return fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))
+	})
 }
