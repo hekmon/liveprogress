@@ -1,4 +1,4 @@
-package termprogress
+package liveprogress
 
 import (
 	"fmt"
@@ -22,11 +22,11 @@ var (
 	itemsAccess sync.Mutex
 )
 
-func AddBar(total uint64) (pb *ProgressBar) {
+func AddBar(total uint64) (pb *Bar) {
 	if total == 0 {
 		return
 	}
-	pb = &ProgressBar{
+	pb = &Bar{
 		// ui
 		fill:          Fill,
 		fillWidth:     runewidth.RuneWidth(Fill),
@@ -69,13 +69,13 @@ func RemoveAll() {
 	itemsAccess.Unlock()
 }
 
-func RemoveBar(pb *ProgressBar) {
+func RemoveBar(pb *Bar) {
 	if pb == nil {
 		return
 	}
 	itemsAccess.Lock()
 	for index, item := range items {
-		if item, ok := item.(*ProgressBar); ok && item == pb {
+		if item, ok := item.(*Bar); ok && item == pb {
 			items = append(items[:index], items[index+1:]...)
 			break
 		}

@@ -1,4 +1,4 @@
-package termprogress
+package liveprogress
 
 import (
 	"math"
@@ -42,7 +42,7 @@ func SetProgressStyleUTF8Arrows() {
 	RightEnd = '▸'
 }
 
-type ProgressBar struct {
+type Bar struct {
 	// ui
 	fill           rune
 	fillWidth      int
@@ -67,37 +67,37 @@ type ProgressBar struct {
 }
 
 // DecoratorFunc is a function that can be prepended and appended to the progress bar
-type DecoratorFunc func(pb *ProgressBar) string
+type DecoratorFunc func(pb *Bar) string
 
-func (pb *ProgressBar) Current() uint64 {
+func (pb *Bar) Current() uint64 {
 	return pb.current.Load()
 }
 
-func (pb *ProgressBar) CurrentAdd(value uint64) {
+func (pb *Bar) CurrentAdd(value uint64) {
 	pb.current.Add(value)
 }
 
-func (pb *ProgressBar) CurrentCompareAndSwap(expectedCurrent, newCurrent uint64) bool {
+func (pb *Bar) CurrentCompareAndSwap(expectedCurrent, newCurrent uint64) bool {
 	return pb.current.CompareAndSwap(expectedCurrent, newCurrent)
 }
 
-func (pb *ProgressBar) CurrentSet(value uint64) {
+func (pb *Bar) CurrentSet(value uint64) {
 	pb.current.Store(value)
 }
 
-func (pb *ProgressBar) CurrentSwap(value uint64) (oldValue uint64) {
+func (pb *Bar) CurrentSwap(value uint64) (oldValue uint64) {
 	return pb.current.Swap(value)
 }
 
-func (pb *ProgressBar) CurrentIncrement() {
+func (pb *Bar) CurrentIncrement() {
 	pb.CurrentAdd(1)
 }
 
-func (pb *ProgressBar) Progress() float64 {
+func (pb *Bar) Progress() float64 {
 	return float64(pb.current.Load()) / float64(pb.total)
 }
 
-func (pb *ProgressBar) String() string {
+func (pb *Bar) String() string {
 	defer pb.decoratorsAccess.Unlock()
 	pb.decoratorsAccess.Lock()
 	// Prepend fx
@@ -180,6 +180,6 @@ func (pb *ProgressBar) String() string {
 	return assembler.String()
 }
 
-func (pb *ProgressBar) Total() uint64 {
+func (pb *Bar) Total() uint64 {
 	return pb.total
 }
