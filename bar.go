@@ -71,6 +71,10 @@ func (pb *ProgressBar) Add(value uint64) {
 	pb.current.Add(value)
 }
 
+func (pb *ProgressBar) CompareAndSwap(expectedCurrent, newCurrent uint64) bool {
+	return pb.current.CompareAndSwap(expectedCurrent, newCurrent)
+}
+
 func (pb *ProgressBar) Current() uint64 {
 	return pb.current.Load()
 }
