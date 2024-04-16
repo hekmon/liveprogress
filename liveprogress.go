@@ -22,8 +22,8 @@ var (
 	itemsAccess sync.Mutex
 )
 
-func AddBar(total uint64) (bar *Bar) {
-	bar = &Bar{
+func AddBar(total uint64) (pb *ProgressBar) {
+	pb = &ProgressBar{
 		// ui
 		fill:          Fill,
 		fillWidth:     runewidth.RuneWidth(Fill),
@@ -40,9 +40,9 @@ func AddBar(total uint64) (bar *Bar) {
 		createdAt: time.Now(),
 		total:     total,
 	}
-	bar.enclosureWidth = bar.leftEndWidth + bar.rightEndWidth
+	pb.enclosureWidth = pb.leftEndWidth + pb.rightEndWidth
 	itemsAccess.Lock()
-	items = append(items, bar)
+	items = append(items, pb)
 	itemsAccess.Unlock()
 	return
 }
@@ -66,13 +66,13 @@ func RemoveAll() {
 	itemsAccess.Unlock()
 }
 
-func RemoveBar(bar *Bar) {
-	if bar == nil {
+func RemoveBar(pb *ProgressBar) {
+	if pb == nil {
 		return
 	}
 	itemsAccess.Lock()
 	for index, item := range items {
-		if b, ok := item.(*Bar); ok && b == bar {
+		if item, ok := item.(*ProgressBar); ok && item == pb {
 			items = append(items[:index], items[index+1:]...)
 			break
 		}

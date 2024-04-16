@@ -25,7 +25,7 @@ var (
 	Width         = 0   // Width is the default width of the progress bar. 0 for automatic width.
 )
 
-func SetASCIIStyle() {
+func SetProgressStyleASCII() {
 	LeftEnd = '['
 	Fill = '='
 	Head = '>'
@@ -33,7 +33,7 @@ func SetASCIIStyle() {
 	RightEnd = ']'
 }
 
-func SetUTF8ArrowsStyle() {
+func SetProgressStyleUTF8Arrows() {
 	LeftEnd = '◂'
 	Fill = '⎯'
 	Head = '→'
@@ -41,7 +41,7 @@ func SetUTF8ArrowsStyle() {
 	RightEnd = '▸'
 }
 
-type Bar struct {
+type ProgressBar struct {
 	// ui
 	fill           rune
 	fillWidth      int
@@ -65,48 +65,48 @@ type Bar struct {
 }
 
 // DecoratorFunc is a function that can be prepended and appended to the progress bar
-type DecoratorFunc func(b *Bar) string
+type DecoratorFunc func(pb *ProgressBar) string
 
-func (b *Bar) Add(value uint64) {
-	b.current.Add(value)
+func (pb *ProgressBar) Add(value uint64) {
+	pb.current.Add(value)
 }
 
-func (b *Bar) Current() uint64 {
-	return b.current.Load()
+func (pb *ProgressBar) Current() uint64 {
+	return pb.current.Load()
 }
 
-func (b *Bar) Inc() {
-	b.Add(1)
+func (pb *ProgressBar) Inc() {
+	pb.Add(1)
 }
 
-func (b *Bar) Progress() float64 {
-	return float64(b.current.Load()) / float64(b.total)
+func (pb *ProgressBar) Progress() float64 {
+	return float64(pb.current.Load()) / float64(pb.total)
 }
 
-func (b *Bar) Set(value uint64) {
-	b.current.Store(value)
+func (pb *ProgressBar) Set(value uint64) {
+	pb.current.Store(value)
 }
 
-func (b *Bar) String() string {
+func (pb *ProgressBar) String() string {
 	// Prepend fx
-	pfx := make([]string, len(b.prependFuncs))
+	pfx := make([]string, len(pb.prependFuncs))
 	pfxLen := 0
 	pfxWidth := 0
-	for index, fx := range b.prependFuncs {
-		pfx[index] = fx(b)
+	for index, fx := range pb.prependFuncs {
+		pfx[index] = fx(pb)
 		pfxLen += len(pfx[index])
-		if b.width == 0 {
+		if pb.width == 0 {
 			pfxWidth += runewidth.StringWidth(pfx[index])
 		}
 	}
 	// Append fx
-	afx := make([]string, len(b.appendFuncs))
+	afx := make([]string, len(pb.appendFuncs))
 	afxLen := 0
 	afxWidth := 0
-	for index, fx := range b.appendFuncs {
-		afx[index] = fx(b)
+	for index, fx := range pb.appendFuncs {
+		afx[index] = fx(pb)
 		afxLen += len(afx[index])
-		if b.width == 0 {
+		if pb.width == 0 {
 			afxWidth += runewidth.StringWidth(afx[index])
 		}
 	}
@@ -116,7 +116,7 @@ func (b *Bar) String() string {
 		progress      strings.Builder
 	)
 	switch {
-	case b.width == 0:
+	case pb.width == 0:
 		// Calculate the width of the progress bar
 		termCols, _ := liveterm.GetTermSize()
 		progressWidth = termCols - pfxWidth - afxWidth
@@ -124,35 +124,35 @@ func (b *Bar) String() string {
 			// this will break line
 			progressWidth = minimumProgressWidth
 		}
-	case b.width < minimumProgressWidth:
+	case pb.width < minimumProgressWidth:
 		progressWidth = minimumProgressWidth
 	default:
-		progressWidth = b.width
+		progressWidth = pb.width
 	}
 	progress.Grow(progressWidth)
 	progress.WriteRune(LeftEnd)
-	barWidth := progressWidth - b.enclosureWidth
-	progressRatio := b.Progress()
+	barWidth := progressWidth - pb.enclosureWidth
+	progressRatio := pb.Progress()
 	if progressRatio > 1 {
 		progressRatio = 1
 	}
 	completionWidth := int(math.Round(progressRatio * float64(barWidth)))
 	completionActualWidth := 0
 	if progressRatio == 1 {
-		for i := 0; i < completionWidth/b.fillWidth; i++ {
-			progress.WriteRune(b.fill)
-			completionActualWidth += b.fillWidth
+		for i := 0; i < completionWidth/pb.fillWidth; i++ {
+			progress.WriteRune(pb.fill)
+			completionActualWidth += pb.fillWidth
 		}
-	} else if completionWidth >= b.headWidth {
-		for i := 0; i < (completionWidth-b.headWidth)/b.fillWidth; i++ {
-			progress.WriteRune(b.fill)
-			completionActualWidth += b.fillWidth
+	} else if completionWidth >= pb.headWidth {
+		for i := 0; i < (completionWidth-pb.headWidth)/pb.fillWidth; i++ {
+			progress.WriteRune(pb.fill)
+			completionActualWidth += pb.fillWidth
 		}
-		progress.WriteRune(b.head)
-		completionActualWidth += b.headWidth
+		progress.WriteRune(pb.head)
+		completionActualWidth += pb.headWidth
 	}
 	for i := 0; i < barWidth-completionActualWidth; i++ {
-		progress.WriteRune(b.empty)
+		progress.WriteRune(pb.empty)
 	}
 	progress.WriteRune(RightEnd)
 	// Assemble
@@ -168,6 +168,6 @@ func (b *Bar) String() string {
 	return assembler.String()
 }
 
-func (b *Bar) Total() uint64 {
-	return b.total
+func (pb *ProgressBar) Total() uint64 {
+	return pb.total
 }
