@@ -3,6 +3,7 @@ package termprogress
 import (
 	"math"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -59,9 +60,10 @@ type ProgressBar struct {
 	current atomic.Uint64
 	total   uint64
 	// decorators
-	createdAt    time.Time
-	prependFuncs []DecoratorFunc
-	appendFuncs  []DecoratorFunc
+	createdAt        time.Time
+	prependFuncs     []DecoratorFunc
+	appendFuncs      []DecoratorFunc
+	decoratorsAccess sync.Mutex
 }
 
 // DecoratorFunc is a function that can be prepended and appended to the progress bar
@@ -96,6 +98,8 @@ func (pb *ProgressBar) Progress() float64 {
 }
 
 func (pb *ProgressBar) String() string {
+	defer pb.decoratorsAccess.Unlock()
+	pb.decoratorsAccess.Lock()
 	// Prepend fx
 	pfx := make([]string, len(pb.prependFuncs))
 	pfxLen := 0

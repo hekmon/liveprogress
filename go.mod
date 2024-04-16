@@ -2,7 +2,7 @@ module github.com/hekmon/termprogress
 
 go 1.18
 
-replace github.com/hekmon/liveterm => /home/doudou/perso/github.com/hekmon/liveterm
+replace github.com/hekmon/liveterm => /Users/doudou/Documents/Perso/GoProjects/liveterm
 
 require (
 	github.com/hekmon/liveterm v1.0.0
