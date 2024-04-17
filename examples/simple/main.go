@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// Config
-	liveprogress.DefaultConfig.Width = 70 // leave it a 0 for automatic width
+	liveprogress.DefaultConfig.Width = 78 // leave it a 0 for automatic width
 	countTo := 100
 	// Go
 	if err := liveprogress.Start(); err != nil {
