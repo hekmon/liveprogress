@@ -25,9 +25,9 @@ func main() {
 	liveprogress.Output = os.Stdout
 	liveprogress.RefreshInterval = 100 * time.Millisecond
 	// Progress bar configs
-	liveprogress.DefaultConfig.Width = 70 // leave it a 0 for automatic width
+	liveprogress.DefaultConfig.Width = 40 // leave it a 0 for automatic width
 	arrowsBarConfig := liveprogress.BarConfig{
-		Width: 70, // leave it a 0 for automatic width
+		Width: 40, // leave it a 0 for automatic width
 	}
 	arrowsBarConfig.SetStyleUnicodeArrows()
 	// Go
@@ -65,6 +65,12 @@ func hashRandom(size int, config liveprogress.BarConfig) {
 				return fmt.Sprintf("  SHA256: 0x%X", hasher.GetCurrentHash())
 			},
 		},
+		liveprogress.DecoratorAddition{
+			Decorator: func(bar *liveprogress.Bar) string {
+				return "  Remaining:"
+			},
+		},
+		liveprogress.AppendTimeRemaining(),
 	)
 	if bar == nil {
 		panic("failed to create progress bar")
