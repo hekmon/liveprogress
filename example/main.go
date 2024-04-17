@@ -76,7 +76,7 @@ func hashRandom(size int, config liveprogress.BarConfig) {
 			panic(err)
 		}
 		// Hashing done
-		fmt.Fprintf(liveprogress.Bypass(), "%d bytes hashed: 0x%X\n", size, hasher.GetCurrentHash())
+		fmt.Fprintf(liveprogress.Bypass(), "%d bytes SHA256 done: 0x%X\n", size, hasher.GetCurrentHash())
 		liveprogress.RemoveBar(bar)
 		// Cleanup
 		fd.Close()
