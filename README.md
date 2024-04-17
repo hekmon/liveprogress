@@ -34,7 +34,7 @@ TODO gif
 
 ### Advanced
 
-See full source code [here](examples/advanced/main.go)
+See full source code [here](examples/advanced/main.go).
 
 TODO gif
 
