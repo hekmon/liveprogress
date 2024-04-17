@@ -30,13 +30,13 @@ liveprogress.Stop(true)
 fmt.Println("By setting the Stop() bool parameter to true, the progress bar is cleared at stop.")
 ```
 
-TODO gif
+![Simple example output animation](https://github.com/hekmon/liveprogress/blob/main/examples/simple/record.gif?raw=true)
 
 ### Advanced
 
 See full source code [here](examples/advanced/main.go).
 
-TODO gif
+![Advanced example output animation](https://github.com/hekmon/liveprogress/blob/main/examples/advanced/record.gif?raw=true)
 
 ## Installation
 
