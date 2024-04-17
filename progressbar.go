@@ -25,6 +25,7 @@ func init() {
 	DefaultConfig.SetStyleASCII()
 }
 
+// BarConfig is the configuration of a progress bar. It includes its width and style.
 type BarConfig struct {
 	// Config
 	Width int // Width is the width of the progress bar, if 0 its size will be automatically calculated based on the terminal size and the decoractors
@@ -36,6 +37,7 @@ type BarConfig struct {
 	RightEnd rune // RightEnd is the default character in the right most part of the progress indicator
 }
 
+// SetStyleASCII sets the progress bar style to a simple ASCII style.
 func (bc *BarConfig) SetStyleASCII() {
 	bc.LeftEnd = '['
 	bc.Fill = '='
@@ -44,6 +46,7 @@ func (bc *BarConfig) SetStyleASCII() {
 	bc.RightEnd = ']'
 }
 
+// SetStyleUnicodeArrows sets the progress bar style to a unicode arrows style.
 func (bc *BarConfig) SetStyleUnicodeArrows() {
 	bc.LeftEnd = '◂'
 	bc.Fill = '⎯'
@@ -64,6 +67,7 @@ type barStyleWidth struct {
 	RightEnd int
 }
 
+// Bar is a progress bar that can be added to the live progress. Do not instanciate it directly, use AddBar() instead.
 type Bar struct {
 	// ui
 	config     BarConfig
@@ -78,34 +82,32 @@ type Bar struct {
 	decoratorsAccess sync.Mutex
 }
 
+// Current returns the current value of the progress bar.
 func (pb *Bar) Current() uint64 {
 	return pb.current.Load()
 }
 
+// CurrentAdd adds a value to the current value of the progress bar.
 func (pb *Bar) CurrentAdd(value uint64) {
 	pb.current.Add(value)
 }
 
-func (pb *Bar) CurrentCompareAndSwap(expectedCurrent, newCurrent uint64) bool {
-	return pb.current.CompareAndSwap(expectedCurrent, newCurrent)
-}
-
+// CurrentSet sets the current value of the progress bar.
 func (pb *Bar) CurrentSet(value uint64) {
 	pb.current.Store(value)
 }
 
-func (pb *Bar) CurrentSwap(value uint64) (oldValue uint64) {
-	return pb.current.Swap(value)
-}
-
+// CurrentIncrement increments the current value of the progress bar by 1.
 func (pb *Bar) CurrentIncrement() {
 	pb.CurrentAdd(1)
 }
 
+// Progress returns the progress of the bar as a float64 between 0 and 1.
 func (pb *Bar) Progress() float64 {
 	return float64(pb.current.Load()) / float64(pb.total)
 }
 
+// String returns the string representation of the progress bar.
 func (pb *Bar) String() string {
 	defer pb.decoratorsAccess.Unlock()
 	pb.decoratorsAccess.Lock()
@@ -189,6 +191,7 @@ func (pb *Bar) String() string {
 	return assembler.String()
 }
 
+// Total returns the total value of the progress bar.
 func (pb *Bar) Total() uint64 {
 	return pb.total
 }
@@ -197,9 +200,10 @@ func (pb *Bar) Total() uint64 {
 	Decorators
 */
 
-// DecoratorFunc is a function that can be prepended and appended to the progress bar
+// DecoratorFunc is a function that can be called by a progress bar in order to add custom informations to it.
 type DecoratorFunc func(pb *Bar) string
 
+// PrependPercent is a ready to use DecoratorAddition you can use when creating a new progress bar.
 func PrependPercent() (da DecoratorAddition) {
 	da.Decorator = func(pb *Bar) string {
 		return fmt.Sprintf("%3d%% ", int(math.Round(pb.Progress()*100)))
@@ -208,6 +212,7 @@ func PrependPercent() (da DecoratorAddition) {
 	return
 }
 
+// AppendPercent is a ready to use DecoratorAddition you can use when creating a new progress bar.
 func AppendPercent() (da DecoratorAddition) {
 	da.Decorator = func(pb *Bar) string {
 		return fmt.Sprintf(" %3d%%", int(math.Round(pb.Progress()*100)))
@@ -215,6 +220,7 @@ func AppendPercent() (da DecoratorAddition) {
 	return
 }
 
+// PrependTimeElapsed is a ready to use DecoratorAddition you can use when creating a new progress bar.
 func PrependTimeElapsed() (da DecoratorAddition) {
 	da.Decorator = func(pb *Bar) string {
 		return fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second))
@@ -223,6 +229,7 @@ func PrependTimeElapsed() (da DecoratorAddition) {
 	return
 }
 
+// AppendTimeElapsed is a ready to use DecoratorAddition you can use when creating a new progress bar.
 func AppendTimeElapsed() (da DecoratorAddition) {
 	da.Decorator = func(pb *Bar) string {
 		return fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second))
@@ -230,6 +237,7 @@ func AppendTimeElapsed() (da DecoratorAddition) {
 	return
 }
 
+// PrependTimeRemaining is a ready to use DecoratorAddition you can use when creating a new progress bar.
 func PrependTimeRemaining() (da DecoratorAddition) {
 	da.Decorator = func(pb *Bar) string {
 		progress := pb.Progress()
@@ -239,6 +247,7 @@ func PrependTimeRemaining() (da DecoratorAddition) {
 	return
 }
 
+// AppendTimeRemaining is a ready to use DecoratorAddition you can use when creating a new progress bar.
 func AppendTimeRemaining() (da DecoratorAddition) {
 	da.Decorator = func(pb *Bar) string {
 		progress := pb.Progress()
