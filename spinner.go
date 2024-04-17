@@ -4,7 +4,7 @@ var (
 	spinnerStates = []rune{'⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'}
 )
 
-// Spinner is a custom item that can be added as a custom line or part of a custom DecoratorFunc.
+// Spinner is a custom item that can be added as custom DecoratorFunc.
 type Spinner struct {
 	lastShow int
 }
