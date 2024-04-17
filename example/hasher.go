@@ -48,7 +48,12 @@ func (hp *SHA256Progress) ComputeHash(reportWritten func(uint64)) (err error) {
 
 func (hp *SHA256Progress) GetCurrentHash() []byte {
 	if hp.hash != nil {
+		// compute is already done
 		return hp.hash
+	}
+	if hp.hasher == nil {
+		// too soon, CompupteHash has not been called yet
+		return nil
 	}
 	return hp.hasher.GetCurrentHash()
 }

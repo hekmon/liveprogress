@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/hekmon/liveprogress"
 )
@@ -20,14 +21,19 @@ var (
 )
 
 func main() {
-	// Config
+	// Global config (these are already the default values)
 	liveprogress.Output = os.Stdout
-	liveprogress.Start()
-	var arrowsBarConfig liveprogress.BarConfig
-	// arrowsBarConfig.Width = 70
+	liveprogress.RefreshInterval = 100 * time.Millisecond
+	// Progress bar configs
+	liveprogress.DefaultConfig.Width = 70 // leave it a 0 for automatic width
+	arrowsBarConfig := liveprogress.BarConfig{
+		Width: 70, // leave it a 0 for automatic width
+	}
 	arrowsBarConfig.SetStyleUnicodeArrows()
-	// liveprogress.DefaultConfig.Width = 70
 	// Go
+	if err := liveprogress.Start(); err != nil {
+		panic(err)
+	}
 	hashRandom(size7G, liveprogress.DefaultConfig)
 	hashRandom(size8G, arrowsBarConfig)
 	hashRandom(size3G, liveprogress.DefaultConfig)
