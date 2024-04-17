@@ -40,7 +40,7 @@ func main() {
 	hashRandom(size7G, liveprogress.DefaultConfig)
 	hashRandom(size8G, arrowsBarConfig)
 	hashRandom(size3G, liveprogress.DefaultConfig)
-	liveprogress.AddCustomLine(spinner.Next)
+	// liveprogress.AddCustomLine(spinner.Next)
 	// Wait
 	workers.Wait()
 	liveprogress.Stop(true)
