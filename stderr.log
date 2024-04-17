@@ -1,8 +1,0 @@
-panic: read /dev/random: file already closed
-
-goroutine 5 [running]:
-main.hashRandom.func3(0x140001060c0)
-	/Users/doudou/Documents/Perso/GoProjects/liveprogress/example/main.go:59 +0x158
-created by main.hashRandom in goroutine 1
-	/Users/doudou/Documents/Perso/GoProjects/liveprogress/example/main.go:56 +0x244
-exit status 2
