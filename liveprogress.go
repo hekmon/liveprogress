@@ -127,11 +127,11 @@ func RemoveCustomLine(cl *CustomLine) {
 	itemsAccess.Unlock()
 }
 
-func Start() {
+func Start() (err error) {
 	liveterm.RefreshInterval = RefreshInterval
 	liveterm.Output = Output
 	liveterm.SetMultiLinesUpdateFx(updater)
-	liveterm.Start()
+	return liveterm.Start()
 }
 
 func Stop(clear bool) {
