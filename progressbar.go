@@ -13,10 +13,22 @@ import (
 )
 
 const (
-	minimumProgressWidth = 12
+	minimumProgressWidth = 8
 )
 
-type BarStyle struct {
+var (
+	// DefaultConfig can be used when creating a new progress bar
+	DefaultConfig BarConfig
+)
+
+func init() {
+	DefaultConfig.SetStyleASCII()
+}
+
+type BarConfig struct {
+	// Config
+	Width int // Width is the width of the progress bar, if 0 its size will be automatically calculated based on the terminal size and the decoractors
+	// Style
 	LeftEnd  rune // LeftEnd is the default character in the left most part of the progress indicator
 	Fill     rune // Fill is the default character representing completed progress
 	Head     rune // Head is the default character that moves when progress is updated
@@ -24,24 +36,24 @@ type BarStyle struct {
 	RightEnd rune // RightEnd is the default character in the right most part of the progress indicator
 }
 
-func BarStyleASCII() BarStyle {
-	return BarStyle{
-		LeftEnd:  '[',
-		Fill:     '=',
-		Head:     '>',
-		Empty:    '-',
-		RightEnd: ']',
-	}
+func (bc *BarConfig) SetStyleASCII() {
+	bc.LeftEnd = '['
+	bc.Fill = '='
+	bc.Head = '>'
+	bc.Empty = '-'
+	bc.RightEnd = ']'
 }
 
-func BarStyleUTF8Arrows() BarStyle {
-	return BarStyle{
-		LeftEnd:  '◂',
-		Fill:     '⎯',
-		Head:     '→',
-		Empty:    ' ',
-		RightEnd: '▸',
-	}
+func (bc *BarConfig) SetStyleUnicodeArrows() {
+	bc.LeftEnd = '◂'
+	bc.Fill = '⎯'
+	bc.Head = '→'
+	bc.Empty = ' '
+	bc.RightEnd = '▸'
+}
+
+func (bc *BarConfig) validStyle() bool {
+	return bc.LeftEnd != 0 && bc.Fill != 0 && bc.Head != 0 && bc.Empty != 0 && bc.RightEnd != 0
 }
 
 type barStyleWidth struct {
@@ -54,9 +66,8 @@ type barStyleWidth struct {
 
 type Bar struct {
 	// ui
-	style      BarStyle
+	config     BarConfig
 	styleWidth barStyleWidth
-	width      int
 	// progress
 	current atomic.Uint64
 	total   uint64
@@ -108,7 +119,7 @@ func (pb *Bar) String() string {
 	for index, fx := range pb.prependFuncs {
 		pfx[index] = fx(pb)
 		pfxLen += len(pfx[index])
-		if pb.width == 0 {
+		if pb.config.Width == 0 {
 			pfxWidth += runewidth.StringWidth(pfx[index])
 		}
 	}
@@ -119,7 +130,7 @@ func (pb *Bar) String() string {
 	for index, fx := range pb.appendFuncs {
 		afx[index] = fx(pb)
 		afxLen += len(afx[index])
-		if pb.width == 0 {
+		if pb.config.Width == 0 {
 			afxWidth += runewidth.StringWidth(afx[index])
 		}
 	}
@@ -129,7 +140,7 @@ func (pb *Bar) String() string {
 		progress      strings.Builder
 	)
 	switch {
-	case pb.width == 0:
+	case pb.config.Width == 0:
 		// Calculate the width of the progress bar
 		termCols, _ := liveterm.GetTermSize()
 		progressWidth = termCols - pfxWidth - afxWidth
@@ -137,13 +148,13 @@ func (pb *Bar) String() string {
 			// this will break line
 			progressWidth = minimumProgressWidth
 		}
-	case pb.width < minimumProgressWidth:
+	case pb.config.Width < minimumProgressWidth:
 		progressWidth = minimumProgressWidth
 	default:
-		progressWidth = pb.width
+		progressWidth = pb.config.Width
 	}
 	progress.Grow(progressWidth)
-	progress.WriteRune(pb.style.LeftEnd)
+	progress.WriteRune(pb.config.LeftEnd)
 	barWidth := progressWidth - pb.styleWidth.LeftEnd - pb.styleWidth.RightEnd
 	progressRatio := pb.Progress()
 	if progressRatio > 1 {
@@ -153,21 +164,21 @@ func (pb *Bar) String() string {
 	completionActualWidth := 0
 	if progressRatio == 1 {
 		for i := 0; i < completionWidth/pb.styleWidth.Fill; i++ {
-			progress.WriteRune(pb.style.Fill)
+			progress.WriteRune(pb.config.Fill)
 			completionActualWidth += pb.styleWidth.Fill
 		}
 	} else if completionWidth >= pb.styleWidth.Head {
 		for i := 0; i < (completionWidth-pb.styleWidth.Head)/pb.styleWidth.Fill; i++ {
-			progress.WriteRune(pb.style.Fill)
+			progress.WriteRune(pb.config.Fill)
 			completionActualWidth += pb.styleWidth.Fill
 		}
-		progress.WriteRune(pb.style.Head)
+		progress.WriteRune(pb.config.Head)
 		completionActualWidth += pb.styleWidth.Head
 	}
 	for i := 0; i < barWidth-completionActualWidth; i++ {
-		progress.WriteRune(pb.style.Empty)
+		progress.WriteRune(pb.config.Empty)
 	}
-	progress.WriteRune(pb.style.RightEnd)
+	progress.WriteRune(pb.config.RightEnd)
 	// Assemble
 	var assembler strings.Builder
 	assembler.Grow(pfxLen + progress.Len() + afxLen)

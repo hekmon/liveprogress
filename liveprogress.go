@@ -30,21 +30,23 @@ func (cl *CustomLine) String() string {
 	return cl.generator()
 }
 
-func AddBar(width int, total uint64, style BarStyle) (pb *Bar) {
+func AddBar(total uint64, config BarConfig) (pb *Bar) {
 	if total == 0 {
+		return
+	}
+	if !config.validStyle() {
 		return
 	}
 	pb = &Bar{
 		// ui
-		style: style,
+		config: config,
 		styleWidth: barStyleWidth{
-			LeftEnd:  runewidth.RuneWidth(style.LeftEnd),
-			Fill:     runewidth.RuneWidth(style.Fill),
-			Head:     runewidth.RuneWidth(style.Head),
-			Empty:    runewidth.RuneWidth(style.Empty),
-			RightEnd: runewidth.RuneWidth(style.RightEnd),
+			LeftEnd:  runewidth.RuneWidth(config.LeftEnd),
+			Fill:     runewidth.RuneWidth(config.Fill),
+			Head:     runewidth.RuneWidth(config.Head),
+			Empty:    runewidth.RuneWidth(config.Empty),
+			RightEnd: runewidth.RuneWidth(config.RightEnd),
 		},
-		width: width,
 		// progress
 		createdAt: time.Now(),
 		total:     total,
