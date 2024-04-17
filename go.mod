@@ -3,7 +3,7 @@ module github.com/hekmon/liveprogress
 go 1.18
 
 require (
-	github.com/hekmon/liveterm v0.0.0-20240417100359-1d26aaa58d18
+	github.com/hekmon/liveterm v0.0.0-20240417104545-7fe56c2624ca
 	github.com/mattn/go-runewidth v0.0.15
 )
 

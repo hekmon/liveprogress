@@ -1,5 +1,5 @@
-github.com/hekmon/liveterm v0.0.0-20240417100359-1d26aaa58d18 h1:csKW/XiB3Cw5PfdHC4/37ISecEFgdsmvelggAnU4Qus=
-github.com/hekmon/liveterm v0.0.0-20240417100359-1d26aaa58d18/go.mod h1:WsfqTX1GfvmB52vl26ULY98PLRg7vHg0mN6fZ9sdcA8=
+github.com/hekmon/liveterm v0.0.0-20240417104545-7fe56c2624ca h1:B8b45UE+TeEang4JERd+dW2gMaERtIfHDFw76T01Wh4=
+github.com/hekmon/liveterm v0.0.0-20240417104545-7fe56c2624ca/go.mod h1:WsfqTX1GfvmB52vl26ULY98PLRg7vHg0mN6fZ9sdcA8=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-runewidth v0.0.15 h1:UNAjwbU9l54TA3KzvqLGxwWjHmMgBUVhBiTjelZgg3U=
