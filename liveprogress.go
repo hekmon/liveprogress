@@ -30,7 +30,12 @@ func (cl *CustomLine) String() string {
 	return cl.generator()
 }
 
-func AddBar(total uint64, config BarConfig) (pb *Bar) {
+type DecoratorAddition struct {
+	Decorator DecoratorFunc
+	Prepend   bool
+}
+
+func AddBar(total uint64, config BarConfig, decorators ...DecoratorAddition) (pb *Bar) {
 	if total == 0 {
 		return
 	}
@@ -51,6 +56,20 @@ func AddBar(total uint64, config BarConfig) (pb *Bar) {
 		createdAt: time.Now(),
 		total:     total,
 	}
+	// decorators
+	pb.prependFuncs = make([]DecoratorFunc, 0, len(decorators))
+	pb.appendFuncs = make([]DecoratorFunc, 0, len(decorators))
+	for _, decorator := range decorators {
+		if decorator.Decorator == nil {
+			continue
+		}
+		if decorator.Prepend {
+			pb.prependFuncs = append(pb.prependFuncs, decorator.Decorator)
+		} else {
+			pb.appendFuncs = append(pb.appendFuncs, decorator.Decorator)
+		}
+	}
+	// Register the bar
 	itemsAccess.Lock()
 	items = append(items, pb)
 	itemsAccess.Unlock()

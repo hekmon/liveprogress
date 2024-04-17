@@ -78,9 +78,6 @@ type Bar struct {
 	decoratorsAccess sync.Mutex
 }
 
-// DecoratorFunc is a function that can be prepended and appended to the progress bar
-type DecoratorFunc func(pb *Bar) string
-
 func (pb *Bar) Current() uint64 {
 	return pb.current.Load()
 }
@@ -200,52 +197,52 @@ func (pb *Bar) Total() uint64 {
 	Decorators
 */
 
-func (pb *Bar) PrependFunc(fx DecoratorFunc) {
-	pb.decoratorsAccess.Lock()
-	pb.prependFuncs = append(pb.prependFuncs, fx)
-	pb.decoratorsAccess.Unlock()
-}
+// DecoratorFunc is a function that can be prepended and appended to the progress bar
+type DecoratorFunc func(pb *Bar) string
 
-func (pb *Bar) AppendFunc(fx DecoratorFunc) {
-	pb.decoratorsAccess.Lock()
-	pb.appendFuncs = append(pb.appendFuncs, fx)
-	pb.decoratorsAccess.Unlock()
-}
-
-func (pb *Bar) PrependPercent() {
-	pb.PrependFunc(func(pb *Bar) string {
+func PrependPercent() (da DecoratorAddition) {
+	da.Decorator = func(pb *Bar) string {
 		return fmt.Sprintf("%3d%% ", int(math.Round(pb.Progress()*100)))
-	})
+	}
+	da.Prepend = true
+	return
 }
 
-func (pb *Bar) AppendPercent() {
-	pb.AppendFunc(func(pb *Bar) string {
+func AppendPercent() (da DecoratorAddition) {
+	da.Decorator = func(pb *Bar) string {
 		return fmt.Sprintf(" %3d%%", int(math.Round(pb.Progress()*100)))
-	})
+	}
+	return
 }
 
-func (pb *Bar) PrependTimeElapsed() {
-	pb.PrependFunc(func(pb *Bar) string {
+func PrependTimeElapsed() (da DecoratorAddition) {
+	da.Decorator = func(pb *Bar) string {
 		return fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second))
-	})
+	}
+	da.Prepend = true
+	return
 }
 
-func (pb *Bar) AppendTimeElapsed() {
-	pb.AppendFunc(func(pb *Bar) string {
+func AppendTimeElapsed() (da DecoratorAddition) {
+	da.Decorator = func(pb *Bar) string {
 		return fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second))
-	})
+	}
+	return
 }
 
-func (pb *Bar) PrependTimeRemaining() {
-	pb.PrependFunc(func(pb *Bar) string {
+func PrependTimeRemaining() (da DecoratorAddition) {
+	da.Decorator = func(pb *Bar) string {
 		progress := pb.Progress()
-		return fmt.Sprintf("%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))
-	})
+		return fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))
+	}
+	da.Prepend = true
+	return
 }
 
-func (pb *Bar) AppendTimeRemaining() {
-	pb.AppendFunc(func(pb *Bar) string {
+func AppendTimeRemaining() (da DecoratorAddition) {
+	da.Decorator = func(pb *Bar) string {
 		progress := pb.Progress()
 		return fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))
-	})
+	}
+	return
 }
