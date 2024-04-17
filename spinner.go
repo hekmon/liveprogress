@@ -9,6 +9,7 @@ type Spinner struct {
 	lastShow int
 }
 
+// Next returns the next spinner state, call it in a loop to animate the spinner.
 func (s *Spinner) Next() string {
 	s.lastShow++
 	if s.lastShow >= len(spinnerStates) {
