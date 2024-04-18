@@ -204,54 +204,45 @@ func (pb *Bar) Total() uint64 {
 type DecoratorFunc func(pb *Bar) string
 
 // PrependPercent is a ready to use DecoratorAddition you can use when creating a new progress bar.
-func PrependPercent() (da DecoratorAddition) {
-	da.Decorator = func(pb *Bar) string {
+func PrependPercent() DecoratorAddition {
+	return PrependDecorator(func(pb *Bar) string {
 		return fmt.Sprintf("%3d%% ", int(math.Round(pb.Progress()*100)))
-	}
-	da.Prepend = true
-	return
+	})
 }
 
 // AppendPercent is a ready to use DecoratorAddition you can use when creating a new progress bar.
-func AppendPercent() (da DecoratorAddition) {
-	da.Decorator = func(pb *Bar) string {
+func AppendPercent() DecoratorAddition {
+	return AppendDecorator(func(pb *Bar) string {
 		return fmt.Sprintf(" %3d%%", int(math.Round(pb.Progress()*100)))
-	}
-	return
+	})
 }
 
 // PrependTimeElapsed is a ready to use DecoratorAddition you can use when creating a new progress bar.
-func PrependTimeElapsed() (da DecoratorAddition) {
-	da.Decorator = func(pb *Bar) string {
+func PrependTimeElapsed() DecoratorAddition {
+	return PrependDecorator(func(pb *Bar) string {
 		return fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second))
-	}
-	da.Prepend = true
-	return
+	})
 }
 
 // AppendTimeElapsed is a ready to use DecoratorAddition you can use when creating a new progress bar.
-func AppendTimeElapsed() (da DecoratorAddition) {
-	da.Decorator = func(pb *Bar) string {
+func AppendTimeElapsed() DecoratorAddition {
+	return AppendDecorator(func(pb *Bar) string {
 		return fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second))
-	}
-	return
+	})
 }
 
 // PrependTimeRemaining is a ready to use DecoratorAddition you can use when creating a new progress bar.
-func PrependTimeRemaining() (da DecoratorAddition) {
-	da.Decorator = func(pb *Bar) string {
+func PrependTimeRemaining() DecoratorAddition {
+	return PrependDecorator(func(pb *Bar) string {
 		progress := pb.Progress()
 		return fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))
-	}
-	da.Prepend = true
-	return
+	})
 }
 
 // AppendTimeRemaining is a ready to use DecoratorAddition you can use when creating a new progress bar.
-func AppendTimeRemaining() (da DecoratorAddition) {
-	da.Decorator = func(pb *Bar) string {
+func AppendTimeRemaining() DecoratorAddition {
+	return AppendDecorator(func(pb *Bar) string {
 		progress := pb.Progress()
 		return fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))
-	}
-	return
+	})
 }

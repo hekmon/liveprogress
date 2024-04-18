@@ -28,6 +28,22 @@ type DecoratorAddition struct {
 	Prepend   bool
 }
 
+// PreprendDecorator is a wrapper to facilitate the creation of a DecoratorAddition.
+func PrependDecorator(decorator DecoratorFunc) DecoratorAddition {
+	return DecoratorAddition{
+		Decorator: decorator,
+		Prepend:   true,
+	}
+}
+
+// AppendDecorator is a wrapper to facilitate the creation of a DecoratorAddition.
+func AppendDecorator(decorator DecoratorFunc) DecoratorAddition {
+	return DecoratorAddition{
+		Decorator: decorator,
+		Prepend:   false,
+	}
+}
+
 // AddBar adds a new progress bar to the live progress. This does not start the live progress itself, see Start().
 func AddBar(total uint64, config BarConfig, decorators ...DecoratorAddition) (pb *Bar) {
 	if total == 0 {
