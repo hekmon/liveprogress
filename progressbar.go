@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -76,10 +75,9 @@ type Bar struct {
 	current atomic.Uint64
 	total   uint64
 	// decorators
-	createdAt        time.Time
-	prependFuncs     []DecoratorFunc
-	appendFuncs      []DecoratorFunc
-	decoratorsAccess sync.Mutex
+	createdAt    time.Time
+	prependFuncs []DecoratorFunc
+	appendFuncs  []DecoratorFunc
 }
 
 // Current returns the current value of the progress bar.
@@ -109,8 +107,6 @@ func (pb *Bar) Progress() float64 {
 
 // String returns the string representation of the progress bar.
 func (pb *Bar) String() string {
-	defer pb.decoratorsAccess.Unlock()
-	pb.decoratorsAccess.Lock()
 	// Prepend fx
 	pfx := make([]string, len(pb.prependFuncs))
 	pfxLen := 0
