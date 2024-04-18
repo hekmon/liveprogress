@@ -56,23 +56,16 @@ func hashRandom(size int, config liveprogress.BarConfig) {
 	hasher := New(fd, size)
 	// Create the hasher progress bar
 	bar := liveprogress.AddBar(uint64(size), config,
-		liveprogress.DecoratorAddition{
-			Decorator: func(bar *liveprogress.Bar) string {
-				return fmt.Sprintf("Hashing %d bytes ", size)
-			},
-			Prepend: true,
-		},
+		liveprogress.PrependDecorator(func(bar *liveprogress.Bar) string {
+			return fmt.Sprintf("Hashing %d bytes ", size)
+		}),
 		liveprogress.AppendPercent(),
-		liveprogress.DecoratorAddition{
-			Decorator: func(bar *liveprogress.Bar) string {
-				return fmt.Sprintf("  SHA256: 0x%X", hasher.GetCurrentHash())
-			},
-		},
-		liveprogress.DecoratorAddition{
-			Decorator: func(bar *liveprogress.Bar) string {
-				return "  Remaining:"
-			},
-		},
+		liveprogress.AppendDecorator(func(bar *liveprogress.Bar) string {
+			return fmt.Sprintf("  SHA256: 0x%X", hasher.GetCurrentHash())
+		}),
+		liveprogress.AppendDecorator(func(bar *liveprogress.Bar) string {
+			return "  Remaining:"
+		}),
 		liveprogress.AppendTimeRemaining(),
 	)
 	if bar == nil {
