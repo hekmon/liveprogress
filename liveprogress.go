@@ -40,7 +40,7 @@ func PrependDecorator(decorator DecoratorFunc) DecoratorAddition {
 func AppendDecorator(decorator DecoratorFunc) DecoratorAddition {
 	return DecoratorAddition{
 		Decorator: decorator,
-		Prepend:   false,
+		// Prepend:   false,
 	}
 }
 
