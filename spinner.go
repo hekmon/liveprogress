@@ -6,14 +6,14 @@ var (
 
 // Spinner is a custom item that can be added as custom DecoratorFunc.
 type Spinner struct {
-	lastShow int
+	lastShown int
 }
 
 // Next returns the next spinner state, call it in a loop to animate the spinner.
 func (s *Spinner) Next() string {
-	s.lastShow++
-	if s.lastShow >= len(spinnerStates) {
-		s.lastShow = 0
+	s.lastShown++
+	if s.lastShown >= len(spinnerStates) {
+		s.lastShown = 0
 	}
-	return string(spinnerStates[s.lastShow])
+	return string(spinnerStates[s.lastShown])
 }
