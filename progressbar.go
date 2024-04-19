@@ -66,6 +66,28 @@ type barStyleWidth struct {
 	RightEnd int
 }
 
+// DecoratorAddition allows to customize a bar when creating it with AddBar().
+type DecoratorAddition struct {
+	Decorator DecoratorFunc
+	Prepend   bool
+}
+
+// PreprendDecorator is a wrapper to facilitate the creation of a DecoratorAddition.
+func PrependDecorator(decorator DecoratorFunc) DecoratorAddition {
+	return DecoratorAddition{
+		Decorator: decorator,
+		Prepend:   true,
+	}
+}
+
+// AppendDecorator is a wrapper to facilitate the creation of a DecoratorAddition.
+func AppendDecorator(decorator DecoratorFunc) DecoratorAddition {
+	return DecoratorAddition{
+		Decorator: decorator,
+		// Prepend:   false,
+	}
+}
+
 // Bar is a progress bar that can be added to the live progress. Do not instanciate it directly, use AddBar() instead.
 type Bar struct {
 	// ui
@@ -78,6 +100,54 @@ type Bar struct {
 	createdAt    time.Time
 	prependFuncs []DecoratorFunc
 	appendFuncs  []DecoratorFunc
+}
+
+func newBar(total uint64, config BarConfig, decorators ...DecoratorAddition) (pb *Bar) {
+	if total == 0 {
+		return
+	}
+	if !config.validStyle() {
+		return
+	}
+	pb = &Bar{
+		// ui
+		config: config,
+		styleWidth: barStyleWidth{
+			LeftEnd:  runewidth.RuneWidth(config.LeftEnd),
+			Fill:     runewidth.RuneWidth(config.Fill),
+			Head:     runewidth.RuneWidth(config.Head),
+			Empty:    runewidth.RuneWidth(config.Empty),
+			RightEnd: runewidth.RuneWidth(config.RightEnd),
+		},
+		// progress
+		createdAt: time.Now(),
+		total:     total,
+	}
+	// decorators
+	var nbPrepend, nbAppend int
+	for _, decorator := range decorators {
+		if decorator.Decorator == nil {
+			continue
+		}
+		if decorator.Prepend {
+			nbPrepend++
+		} else {
+			nbAppend++
+		}
+	}
+	pb.prependFuncs = make([]DecoratorFunc, 0, nbPrepend)
+	pb.appendFuncs = make([]DecoratorFunc, 0, nbAppend)
+	for _, decorator := range decorators {
+		if decorator.Decorator == nil {
+			continue
+		}
+		if decorator.Prepend {
+			pb.prependFuncs = append(pb.prependFuncs, decorator.Decorator)
+		} else {
+			pb.appendFuncs = append(pb.appendFuncs, decorator.Decorator)
+		}
+	}
+	return
 }
 
 // Current returns the current value of the progress bar.

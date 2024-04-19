@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/hekmon/liveterm"
-	"github.com/mattn/go-runewidth"
 )
 
 var (
@@ -19,76 +18,14 @@ var (
 
 var (
 	items       []fmt.Stringer
+	mainItem    fmt.Stringer
 	itemsAccess sync.Mutex
 )
 
-// DecoratorAddition allows to customize a bar when creating it with AddBar().
-type DecoratorAddition struct {
-	Decorator DecoratorFunc
-	Prepend   bool
-}
-
-// PreprendDecorator is a wrapper to facilitate the creation of a DecoratorAddition.
-func PrependDecorator(decorator DecoratorFunc) DecoratorAddition {
-	return DecoratorAddition{
-		Decorator: decorator,
-		Prepend:   true,
-	}
-}
-
-// AppendDecorator is a wrapper to facilitate the creation of a DecoratorAddition.
-func AppendDecorator(decorator DecoratorFunc) DecoratorAddition {
-	return DecoratorAddition{
-		Decorator: decorator,
-		// Prepend:   false,
-	}
-}
-
 // AddBar adds a new progress bar to the live progress. This does not start the live progress itself, see Start().
 func AddBar(total uint64, config BarConfig, decorators ...DecoratorAddition) (pb *Bar) {
-	if total == 0 {
+	if pb = newBar(total, config, decorators...); pb == nil {
 		return
-	}
-	if !config.validStyle() {
-		return
-	}
-	pb = &Bar{
-		// ui
-		config: config,
-		styleWidth: barStyleWidth{
-			LeftEnd:  runewidth.RuneWidth(config.LeftEnd),
-			Fill:     runewidth.RuneWidth(config.Fill),
-			Head:     runewidth.RuneWidth(config.Head),
-			Empty:    runewidth.RuneWidth(config.Empty),
-			RightEnd: runewidth.RuneWidth(config.RightEnd),
-		},
-		// progress
-		createdAt: time.Now(),
-		total:     total,
-	}
-	// decorators
-	var nbPrepend, nbAppend int
-	for _, decorator := range decorators {
-		if decorator.Decorator == nil {
-			continue
-		}
-		if decorator.Prepend {
-			nbPrepend++
-		} else {
-			nbAppend++
-		}
-	}
-	pb.prependFuncs = make([]DecoratorFunc, 0, nbPrepend)
-	pb.appendFuncs = make([]DecoratorFunc, 0, nbAppend)
-	for _, decorator := range decorators {
-		if decorator.Decorator == nil {
-			continue
-		}
-		if decorator.Prepend {
-			pb.prependFuncs = append(pb.prependFuncs, decorator.Decorator)
-		} else {
-			pb.appendFuncs = append(pb.appendFuncs, decorator.Decorator)
-		}
 	}
 	// Register the bar
 	itemsAccess.Lock()
@@ -101,6 +38,7 @@ func AddBar(total uint64, config BarConfig, decorators ...DecoratorAddition) (pb
 func RemoveAll() {
 	itemsAccess.Lock()
 	items = make([]fmt.Stringer, 0, 1)
+	mainItem = nil
 	itemsAccess.Unlock()
 }
 
@@ -110,14 +48,33 @@ func RemoveBar(pb *Bar) {
 	if pb == nil {
 		return
 	}
+	defer itemsAccess.Unlock()
 	itemsAccess.Lock()
+	// Is it the main item?
+	if mainItemBar, ok := mainItem.(*Bar); ok && mainItemBar == pb {
+		mainItem = nil
+		return
+	}
+	// Search for the bar
 	for index, item := range items {
 		if item, ok := item.(*Bar); ok && item == pb {
 			items = append(items[:index], items[index+1:]...)
 			break
 		}
 	}
+}
+
+// SetMainLineAsBar sets the main line as a bar. This does not start the live progress itself, see Start().
+// Main item will always be the last line.
+func SetMainLineAsBar(total uint64, config BarConfig, decorators ...DecoratorAddition) (pb *Bar) {
+	if pb = newBar(total, config, decorators...); pb == nil {
+		return
+	}
+	// Register the bar
+	itemsAccess.Lock()
+	mainItem = pb
 	itemsAccess.Unlock()
+	return
 }
 
 // Start starts the live progress. It will render every bar and custom line added.
@@ -140,9 +97,16 @@ func Stop(clear bool) {
 
 func updater() (lines []string) {
 	itemsAccess.Lock()
-	lines = make([]string, len(items))
+	nbLines := len(items)
+	if mainItem != nil {
+		nbLines++
+	}
+	lines = make([]string, nbLines)
 	for index, item := range items {
 		lines[index] = item.String()
+	}
+	if mainItem != nil {
+		lines[nbLines-1] = mainItem.String()
 	}
 	itemsAccess.Unlock()
 	return
@@ -187,12 +151,31 @@ func RemoveCustomLine(cl *CustomLine) {
 	if cl == nil {
 		return
 	}
+	defer itemsAccess.Unlock()
 	itemsAccess.Lock()
+	// Is it main item?
+	if mainItemCustomLine, ok := mainItem.(*CustomLine); ok && mainItemCustomLine == cl {
+		mainItem = nil
+		return
+	}
+	// Search in other lines
 	for index, item := range items {
 		if item, ok := item.(*CustomLine); ok && item == cl {
 			items = append(items[:index], items[index+1:]...)
 			break
 		}
 	}
+}
+
+func SetMainLineAsCustomLine(generator func() string) (cl *CustomLine) {
+	if generator == nil {
+		return
+	}
+	itemsAccess.Lock()
+	cl = &CustomLine{
+		generator: generator,
+	}
+	mainItem = cl
 	itemsAccess.Unlock()
+	return
 }
