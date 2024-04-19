@@ -170,7 +170,7 @@ func (pb *Bar) String() string {
 		progress.WriteRune(pb.config.Head)
 		completionActualWidth += pb.styleWidth.Head
 	}
-	for i := 0; i < barWidth-completionActualWidth; i++ {
+	for i := 0; i < (barWidth-completionActualWidth)/pb.styleWidth.Empty; i++ {
 		progress.WriteRune(pb.config.Empty)
 	}
 	progress.WriteRune(pb.config.RightEnd)
