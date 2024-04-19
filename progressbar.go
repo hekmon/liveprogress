@@ -286,7 +286,7 @@ func AppendPercent() DecoratorAddition {
 func getPercent(pb *Bar) (percent int) {
 	progress := pb.Progress() * 100
 	percent = int(math.Round(progress))
-	if percent == 100 && progress < 1 {
+	if percent == 100 && progress < 100 {
 		// round has made up reach 100 but we don't want to show 100% if not entirely complete
 		percent = 99
 	}
