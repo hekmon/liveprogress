@@ -33,6 +33,7 @@ func main() {
 		Width: 40, // leave it a 0 for automatic width
 	}
 	arrowsBarConfig.SetStyleUnicodeArrows()
+	liveprogress.SetMainLineAsCustomLine(spinner.Next)
 	// Go
 	if err := liveprogress.Start(); err != nil {
 		panic(err)
@@ -40,7 +41,6 @@ func main() {
 	hashRandom(size7G, liveprogress.DefaultConfig)
 	hashRandom(size8G, arrowsBarConfig)
 	hashRandom(size3G, liveprogress.DefaultConfig)
-	// liveprogress.AddCustomLine(spinner.Next)
 	// Wait
 	workers.Wait()
 	liveprogress.Stop(true)
