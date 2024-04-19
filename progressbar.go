@@ -202,15 +202,25 @@ type DecoratorFunc func(pb *Bar) string
 // PrependPercent is a ready to use DecoratorAddition you can use when creating a new progress bar.
 func PrependPercent() DecoratorAddition {
 	return PrependDecorator(func(pb *Bar) string {
-		return fmt.Sprintf("%3d%% ", int(math.Round(pb.Progress()*100)))
+		return fmt.Sprintf("%3d%% ", getPercent(pb))
 	})
 }
 
 // AppendPercent is a ready to use DecoratorAddition you can use when creating a new progress bar.
 func AppendPercent() DecoratorAddition {
 	return AppendDecorator(func(pb *Bar) string {
-		return fmt.Sprintf(" %3d%%", int(math.Round(pb.Progress()*100)))
+		return fmt.Sprintf(" %3d%%", getPercent(pb))
 	})
+}
+
+func getPercent(pb *Bar) (percent int) {
+	progress := pb.Progress() * 100
+	percent = int(math.Round(progress))
+	if percent == 100 && progress < 1 {
+		// round has made up reach 100 but we don't want to show 100% if not entirely complete
+		percent = 99
+	}
+	return
 }
 
 // PrependTimeElapsed is a ready to use DecoratorAddition you can use when creating a new progress bar.
