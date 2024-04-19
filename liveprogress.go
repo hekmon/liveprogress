@@ -64,8 +64,8 @@ func RemoveBar(pb *Bar) {
 	}
 }
 
-// SetMainLineAsBar sets the main line as a bar. This does not start the live progress itself, see Start().
-// Main item will always be the last line.
+// SetMainLineAsBar sets the main line as a bar. MainLine will always be the last line.
+// This does not start the live progress itself, see Start().
 func SetMainLineAsBar(total uint64, config BarConfig, decorators ...DecoratorAddition) (pb *Bar) {
 	if pb = newBar(total, config, decorators...); pb == nil {
 		return
@@ -167,6 +167,8 @@ func RemoveCustomLine(cl *CustomLine) {
 	}
 }
 
+// SetMainLineAsCustomLine sets the main line as a custom line. MainLine will always be the last line.
+// This does not start the live progress itself, see Start().
 func SetMainLineAsCustomLine(generator func() string) (cl *CustomLine) {
 	if generator == nil {
 		return
