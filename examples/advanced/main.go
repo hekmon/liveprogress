@@ -14,7 +14,7 @@ import (
 
 var (
 	size3G = 3 * 1024 * 1024 * 1024
-	size7G = 5 * 1024 * 1024 * 1024
+	size5G = 5 * 1024 * 1024 * 1024
 	size8G = 8 * 1024 * 1024 * 1024
 )
 
@@ -33,12 +33,14 @@ func main() {
 		Width: 40, // leave it a 0 for automatic width
 	}
 	arrowsBarConfig.SetStyleUnicodeArrows()
-	liveprogress.SetMainLineAsCustomLine(spinner.Next)
+	arrowsBarConfig.LeftEnd = 0
+	arrowsBarConfig.RightEnd = 0
 	// Go
+	liveprogress.SetMainLineAsCustomLine(spinner.Next)
 	if err := liveprogress.Start(); err != nil {
 		panic(err)
 	}
-	hashRandom(size7G, liveprogress.DefaultConfig)
+	hashRandom(size5G, liveprogress.DefaultConfig)
 	hashRandom(size8G, arrowsBarConfig)
 	hashRandom(size3G, liveprogress.DefaultConfig)
 	// Wait
