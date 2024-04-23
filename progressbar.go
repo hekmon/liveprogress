@@ -27,13 +27,13 @@ func init() {
 // BarConfig is the configuration of a progress bar. It includes its width and style.
 type BarConfig struct {
 	// Config
-	Width int // Width is the width of the progress bar, if 0 its size will be automatically calculated based on the terminal size and the decoractors
+	Width int // Width is the width of the progress bar, if 0 its size will be automatically calculated based on terminal and decoractors width
 	// Style
-	LeftEnd  rune // LeftEnd is the default character in the left most part of the progress indicator
+	LeftEnd  rune // LeftEnd is the default character in the left most part of the progress indicator (can be 0 to hide it)
 	Fill     rune // Fill is the default character representing completed progress
 	Head     rune // Head is the default character that moves when progress is updated
 	Empty    rune // Empty is the default character that represents the empty progress
-	RightEnd rune // RightEnd is the default character in the right most part of the progress indicator
+	RightEnd rune // RightEnd is the default character in the right most part of the progress indicator (can be 0 to hide it)
 }
 
 // SetStyleASCII sets the progress bar style to a simple ASCII style.
@@ -55,7 +55,7 @@ func (bc *BarConfig) SetStyleUnicodeArrows() {
 }
 
 func (bc *BarConfig) validStyle() bool {
-	return bc.LeftEnd != 0 && bc.Fill != 0 && bc.Head != 0 && bc.Empty != 0 && bc.RightEnd != 0
+	return bc.Fill != 0 && bc.Head != 0 && bc.Empty != 0
 }
 
 type barStyleWidth struct {
