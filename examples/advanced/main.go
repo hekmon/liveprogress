@@ -34,7 +34,7 @@ func main() {
 	}
 	hashRandom(size5G, liveprogress.WithWidth(40))
 	hashRandom(size8G, liveprogress.WithWidth(40), liveprogress.WithUnicodeArrowsStyle())
-	hashRandom(size3G, liveprogress.WithWidth(42), liveprogress.WithPlainStyle())
+	hashRandom(size3G, liveprogress.WithWidth(42), liveprogress.WithPlainStyle(), liveprogress.WithBarColor("205"))
 	// Wait
 	workers.Wait()
 	liveprogress.Stop(true)

@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/hekmon/liveterm"
 	"github.com/mattn/go-runewidth"
 )
@@ -63,7 +64,7 @@ func WithPlainStyle() BarOption {
 		pb.style = BarStyle{
 			LeftEnd:  0,
 			Fill:     '█',
-			Head:     '▌',
+			Head:     '█',
 			Empty:    '░',
 			RightEnd: 0,
 		}
@@ -81,6 +82,31 @@ func WithUnicodeArrowsStyle() BarOption {
 			Empty:    ' ',
 			RightEnd: '▸',
 		}
+		return nil
+	}
+}
+
+// WithBarColor sets the color of the progress bar.
+// It uses lipgloss library to render the color.
+// See: https://github.com/charmbracelet/lipgloss
+// ANSI 16 colors (4-bit)
+// lipgloss.Color("5")  // magenta
+// lipgloss.Color("9")  // red
+// lipgloss.Color("12") // light blue
+// ANSI 256 Colors (8-bit)
+// lipgloss.Color("86")  // aqua
+// lipgloss.Color("201") // hot pink
+// lipgloss.Color("202") // orange
+// True Color (16,777,216 colors; 24-bit)
+// lipgloss.Color("#0000FF") // good ol' 100% blue
+// lipgloss.Color("#04B575") // a green
+// lipgloss.Color("#3C3C3C") // a dark gray
+// ...as well as a 1-bit ASCII profile, which is black and white only.
+// The terminal's color profile will be automatically detected, and colors outside the gamut
+// of the current palette will be automatically coerced to their closest available value.
+func WithBarColor(color string) BarOption {
+	return func(pb *Bar) error {
+		pb.barStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(color))
 		return nil
 	}
 }
@@ -199,6 +225,7 @@ type Bar struct {
 	width      int
 	style      BarStyle
 	styleWidth barStyleWidth
+	barStyle   lipgloss.Style
 	// progress
 	current atomic.Uint64
 	total   uint64
@@ -219,6 +246,7 @@ func newBar(opts ...BarOption) *Bar {
 	bar := Bar{
 		style:      style,
 		styleWidth: style.width(),
+		barStyle:   lipgloss.NewStyle(),
 		createdAt:  time.Now(),
 		total:      100,
 	}
@@ -328,7 +356,7 @@ func (pb *Bar) String() string {
 	for _, line := range pfx {
 		assembler.WriteString(line)
 	}
-	assembler.WriteString(progress.String())
+	assembler.WriteString(pb.barStyle.Render(progress.String()))
 	for _, line := range afx {
 		assembler.WriteString(line)
 	}
