@@ -9,17 +9,17 @@ import (
 )
 
 func main() {
-	// Config
-	liveprogress.DefaultConfig.Width = 78 // leave it a 0 for automatic width
-	countTo := 100
-	// Go
 	if err := liveprogress.Start(); err != nil {
 		panic(err)
 	}
-	bar := liveprogress.AddBar(uint64(countTo), liveprogress.DefaultConfig,
-		liveprogress.PrependPercent(),
+	bar := liveprogress.AddBar(
+		liveprogress.WithPlainStyle(),
+		liveprogress.WithWidth(78),
+		liveprogress.WithPrependPercent(),
 	)
-	for i := 0; i < countTo; i++ {
+	// By default a bar total is set to 100
+	// As we omit it in AddBar()
+	for i := 0; i < 100; i++ {
 		// Wait a random time
 		time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond)
 		// Increment the bar

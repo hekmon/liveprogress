@@ -27,28 +27,20 @@ func main() {
 	// Global config (these are already the default values)
 	liveprogress.Output = os.Stdout
 	liveprogress.RefreshInterval = 100 * time.Millisecond
-	// Progress bar configs
-	liveprogress.DefaultConfig.Width = 40 // leave it a 0 for automatic width
-	arrowsBarConfig := liveprogress.BarConfig{
-		Width: 40, // leave it a 0 for automatic width
-	}
-	arrowsBarConfig.SetStyleUnicodeArrows()
-	arrowsBarConfig.LeftEnd = 0
-	arrowsBarConfig.RightEnd = 0
 	// Go
 	liveprogress.SetMainLineAsCustomLine(spinner.Next)
 	if err := liveprogress.Start(); err != nil {
 		panic(err)
 	}
-	hashRandom(size5G, liveprogress.DefaultConfig)
-	hashRandom(size8G, arrowsBarConfig)
-	hashRandom(size3G, liveprogress.DefaultConfig)
+	hashRandom(size5G, liveprogress.WithWidth(40))
+	hashRandom(size8G, liveprogress.WithWidth(40), liveprogress.WithUnicodeArrowsStyle())
+	hashRandom(size3G, liveprogress.WithWidth(42), liveprogress.WithPlainStyle())
 	// Wait
 	workers.Wait()
 	liveprogress.Stop(true)
 }
 
-func hashRandom(size int, config liveprogress.BarConfig) {
+func hashRandom(size int, opts ...liveprogress.BarOption) {
 	// Open random
 	fd, err := os.Open("/dev/random")
 	if err != nil {
@@ -56,20 +48,27 @@ func hashRandom(size int, config liveprogress.BarConfig) {
 	}
 	// Create the hasher
 	hasher := New(fd, size)
-	// Create the hasher progress bar
-	bar := liveprogress.AddBar(uint64(size), config,
-		liveprogress.PrependDecorator(func(bar *liveprogress.Bar) string {
+
+	// default options
+	allOpts := []liveprogress.BarOption{
+		liveprogress.WithTotal(uint64(size)),
+		liveprogress.WithPrependDecorator(func(bar *liveprogress.Bar) string {
 			return fmt.Sprintf("Hashing %d bytes ", size)
 		}),
-		liveprogress.AppendPercent(),
-		liveprogress.AppendDecorator(func(bar *liveprogress.Bar) string {
+		liveprogress.WithAppendPercent(),
+		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
 			return fmt.Sprintf("  SHA256: 0x%X", hasher.GetCurrentHash())
 		}),
-		liveprogress.AppendDecorator(func(bar *liveprogress.Bar) string {
+		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
 			return "  Remaining:"
 		}),
-		liveprogress.AppendTimeRemaining(),
-	)
+		liveprogress.WithAppendTimeRemaining(),
+	}
+
+	allOpts = append(allOpts, opts...)
+
+	// Create the hasher progress bar
+	bar := liveprogress.AddBar(allOpts...)
 	if bar == nil {
 		panic("failed to create progress bar")
 	}

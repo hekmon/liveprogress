@@ -15,47 +15,155 @@ const (
 	minimumProgressWidth = 8
 )
 
-var (
-	// DefaultConfig can be used when creating a new progress bar
-	DefaultConfig BarConfig
-)
+// BarOption is a function that can be used to configure a progress bar.
+type BarOption func(*Bar) error
 
-func init() {
-	DefaultConfig.SetStyleASCII()
+// WithTotal sets the total value of the progress bar.
+func WithTotal(total uint64) BarOption {
+	return func(pb *Bar) error {
+		pb.total = total
+		return nil
+	}
 }
 
-// BarConfig is the configuration of a progress bar. It includes its width and style.
-type BarConfig struct {
-	// Config
-	Width int // Width is the width of the progress bar, if 0 its size will be automatically calculated based on terminal and decoractors width
-	// Style
-	LeftEnd  rune // LeftEnd is the default character in the left most part of the progress indicator (can be 0 to hide it)
-	Fill     rune // Fill is the default character representing completed progress
-	Head     rune // Head is the default character that moves when progress is updated
-	Empty    rune // Empty is the default character that represents the empty progress
-	RightEnd rune // RightEnd is the default character in the right most part of the progress indicator (can be 0 to hide it)
+// WithWidth sets the width of the progress bar.
+// By default the with is set to 0, this will take the full terminal width (minus decorators).
+func WithWidth(width int) BarOption {
+	return func(pb *Bar) error {
+		pb.width = width
+		return nil
+	}
 }
 
-// SetStyleASCII sets the progress bar style to a simple ASCII style.
-func (bc *BarConfig) SetStyleASCII() {
-	bc.LeftEnd = '['
-	bc.Fill = '='
-	bc.Head = '>'
-	bc.Empty = '-'
-	bc.RightEnd = ']'
+// WithStyle sets the style of the progress bar.
+func WithStyle(style BarStyle) BarOption {
+	return func(pb *Bar) error {
+		pb.style = style
+		return nil
+	}
 }
 
-// SetStyleUnicodeArrows sets the progress bar style to a unicode arrows style.
-func (bc *BarConfig) SetStyleUnicodeArrows() {
-	bc.LeftEnd = '◂'
-	bc.Fill = '⎯'
-	bc.Head = '→'
-	bc.Empty = ' '
-	bc.RightEnd = '▸'
+// WithASCIIStyle sets the style of the progress bar to an ASCII style.
+func WithASCIIStyle() BarOption {
+	return func(pb *Bar) error {
+		pb.style = BarStyle{
+			LeftEnd:  '[',
+			Fill:     '=',
+			Head:     '>',
+			Empty:    '-',
+			RightEnd: ']',
+		}
+		return nil
+	}
 }
 
-func (bc *BarConfig) validStyle() bool {
-	return bc.Fill != 0 && bc.Head != 0 && bc.Empty != 0
+// WithPlainStyle sets the style of the progress bar to a plain style.
+func WithPlainStyle() BarOption {
+	return func(pb *Bar) error {
+		pb.style = BarStyle{
+			LeftEnd:  0,
+			Fill:     '█',
+			Head:     '▌',
+			Empty:    '░',
+			RightEnd: 0,
+		}
+		return nil
+	}
+}
+
+// WithUnicodeArrowsStyle sets the style of the progress bar to an Unicode arrows style.
+func WithUnicodeArrowsStyle() BarOption {
+	return func(pb *Bar) error {
+		pb.style = BarStyle{
+			LeftEnd:  '◂',
+			Fill:     '⎯',
+			Head:     '→',
+			Empty:    ' ',
+			RightEnd: '▸',
+		}
+		return nil
+	}
+}
+
+// DecoratorFunc is a function that can be used to decorate the progress bar.
+type DecoratorFunc func(pb *Bar) string
+
+// WithAppendDecorator adds a decorator function to the end of the progress bar.
+func WithAppendDecorator(decorators ...DecoratorFunc) BarOption {
+	return func(pb *Bar) error {
+		pb.appendFuncs = append(pb.appendFuncs, decorators...)
+		return nil
+	}
+}
+
+// WithPrependDecorator adds a decorator function to the beginning of the progress bar.
+func WithPrependDecorator(decorators ...DecoratorFunc) BarOption {
+	return func(pb *Bar) error {
+		pb.prependFuncs = append(pb.prependFuncs, decorators...)
+		return nil
+	}
+}
+
+// WithAppendPercent adds the percentage of the progress bar to the end of the bar.
+func WithAppendPercent() BarOption {
+	return func(pb *Bar) error {
+		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
+			return fmt.Sprintf("%3d%% ", getPercent(pb))
+		})
+		return nil
+	}
+}
+
+// WithPrependPercent adds the percentage of the progress bar to the beginning of the bar.
+func WithPrependPercent() BarOption {
+	return func(pb *Bar) error {
+		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
+			return fmt.Sprintf("%3d%% ", getPercent(pb))
+		})
+		return nil
+	}
+}
+
+// WithAppendTimeElapsed adds the time elapsed since the creation of the progress bar to the end of the bar.
+func WithAppendTimeElapsed() BarOption {
+	return func(pb *Bar) error {
+		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
+			return fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second))
+		})
+		return nil
+	}
+}
+
+// WithPrependTimeElapsed adds the time elapsed since the creation of the progress bar to the beginning of the bar.
+func WithPrependTimeElapsed() BarOption {
+	return func(pb *Bar) error {
+		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
+			return fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second))
+		})
+		return nil
+	}
+}
+
+// WithAppendTimeRemaining adds the time remaining until the end of the progress bar to the end of the bar.
+func WithAppendTimeRemaining() BarOption {
+	return func(pb *Bar) error {
+		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
+			progress := pb.Progress()
+			return fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))
+		})
+		return nil
+	}
+}
+
+// WithPrependTimeRemaining adds the time remaining until the end of the progress bar to the beginning of the bar.
+func WithPrependTimeRemaining() BarOption {
+	return func(pb *Bar) error {
+		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
+			progress := pb.Progress()
+			return fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))
+		})
+		return nil
+	}
 }
 
 type barStyleWidth struct {
@@ -66,32 +174,30 @@ type barStyleWidth struct {
 	RightEnd int
 }
 
-// DecoratorAddition allows to customize a bar when creating it with AddBar().
-type DecoratorAddition struct {
-	Decorator DecoratorFunc
-	Prepend   bool
+// BarStyle is the style of a progress bar.
+type BarStyle struct {
+	LeftEnd  rune
+	Fill     rune
+	Head     rune
+	Empty    rune
+	RightEnd rune
 }
 
-// PreprendDecorator is a wrapper to facilitate the creation of a DecoratorAddition.
-func PrependDecorator(decorator DecoratorFunc) DecoratorAddition {
-	return DecoratorAddition{
-		Decorator: decorator,
-		Prepend:   true,
-	}
-}
-
-// AppendDecorator is a wrapper to facilitate the creation of a DecoratorAddition.
-func AppendDecorator(decorator DecoratorFunc) DecoratorAddition {
-	return DecoratorAddition{
-		Decorator: decorator,
-		// Prepend:   false,
+func (b BarStyle) width() barStyleWidth {
+	return barStyleWidth{
+		LeftEnd:  runewidth.RuneWidth(b.LeftEnd),
+		Fill:     runewidth.RuneWidth(b.Fill),
+		Head:     runewidth.RuneWidth(b.Head),
+		Empty:    runewidth.RuneWidth(b.Empty),
+		RightEnd: runewidth.RuneWidth(b.RightEnd),
 	}
 }
 
 // Bar is a progress bar that can be added to the live progress. Do not instanciate it directly, use AddBar() instead.
 type Bar struct {
-	// ui
-	config     BarConfig
+	// style
+	width      int
+	style      BarStyle
 	styleWidth barStyleWidth
 	// progress
 	current atomic.Uint64
@@ -102,52 +208,24 @@ type Bar struct {
 	appendFuncs  []DecoratorFunc
 }
 
-func newBar(total uint64, config BarConfig, decorators ...DecoratorAddition) (pb *Bar) {
-	if total == 0 {
-		return
+func newBar(opts ...BarOption) *Bar {
+	style := BarStyle{
+		LeftEnd:  '[',
+		Fill:     '=',
+		Head:     '>',
+		Empty:    '-',
+		RightEnd: ']',
 	}
-	if !config.validStyle() {
-		return
+	bar := Bar{
+		style:      style,
+		styleWidth: style.width(),
+		createdAt:  time.Now(),
+		total:      100,
 	}
-	pb = &Bar{
-		// ui
-		config: config,
-		styleWidth: barStyleWidth{
-			LeftEnd:  runewidth.RuneWidth(config.LeftEnd),
-			Fill:     runewidth.RuneWidth(config.Fill),
-			Head:     runewidth.RuneWidth(config.Head),
-			Empty:    runewidth.RuneWidth(config.Empty),
-			RightEnd: runewidth.RuneWidth(config.RightEnd),
-		},
-		// progress
-		createdAt: time.Now(),
-		total:     total,
+	for _, opt := range opts {
+		opt(&bar)
 	}
-	// decorators
-	var nbPrepend, nbAppend int
-	for _, decorator := range decorators {
-		if decorator.Decorator == nil {
-			continue
-		}
-		if decorator.Prepend {
-			nbPrepend++
-		} else {
-			nbAppend++
-		}
-	}
-	pb.prependFuncs = make([]DecoratorFunc, 0, nbPrepend)
-	pb.appendFuncs = make([]DecoratorFunc, 0, nbAppend)
-	for _, decorator := range decorators {
-		if decorator.Decorator == nil {
-			continue
-		}
-		if decorator.Prepend {
-			pb.prependFuncs = append(pb.prependFuncs, decorator.Decorator)
-		} else {
-			pb.appendFuncs = append(pb.appendFuncs, decorator.Decorator)
-		}
-	}
-	return
+	return &bar
 }
 
 // Current returns the current value of the progress bar.
@@ -184,7 +262,7 @@ func (pb *Bar) String() string {
 	for index, fx := range pb.prependFuncs {
 		pfx[index] = fx(pb)
 		pfxLen += len(pfx[index])
-		if pb.config.Width == 0 {
+		if pb.width == 0 {
 			pfxWidth += runewidth.StringWidth(pfx[index])
 		}
 	}
@@ -195,7 +273,7 @@ func (pb *Bar) String() string {
 	for index, fx := range pb.appendFuncs {
 		afx[index] = fx(pb)
 		afxLen += len(afx[index])
-		if pb.config.Width == 0 {
+		if pb.width == 0 {
 			afxWidth += runewidth.StringWidth(afx[index])
 		}
 	}
@@ -205,7 +283,7 @@ func (pb *Bar) String() string {
 		progress      strings.Builder
 	)
 	switch {
-	case pb.config.Width == 0:
+	case pb.width == 0:
 		// Calculate the width of the progress bar
 		termCols, _ := liveterm.GetTermSize()
 		progressWidth = termCols - pfxWidth - afxWidth
@@ -213,13 +291,13 @@ func (pb *Bar) String() string {
 			// this will break line
 			progressWidth = minimumProgressWidth
 		}
-	case pb.config.Width < minimumProgressWidth:
+	case pb.width < minimumProgressWidth:
 		progressWidth = minimumProgressWidth
 	default:
-		progressWidth = pb.config.Width
+		progressWidth = pb.width
 	}
 	progress.Grow(progressWidth)
-	progress.WriteRune(pb.config.LeftEnd)
+	progress.WriteRune(pb.style.LeftEnd)
 	barWidth := progressWidth - pb.styleWidth.LeftEnd - pb.styleWidth.RightEnd
 	progressRatio := pb.Progress()
 	if progressRatio > 1 {
@@ -229,21 +307,21 @@ func (pb *Bar) String() string {
 	completionActualWidth := 0
 	if progressRatio == 1 {
 		for i := 0; i < completionWidth/pb.styleWidth.Fill; i++ {
-			progress.WriteRune(pb.config.Fill)
+			progress.WriteRune(pb.style.Fill)
 			completionActualWidth += pb.styleWidth.Fill
 		}
 	} else if completionWidth >= pb.styleWidth.Head {
 		for i := 0; i < (completionWidth-pb.styleWidth.Head)/pb.styleWidth.Fill; i++ {
-			progress.WriteRune(pb.config.Fill)
+			progress.WriteRune(pb.style.Fill)
 			completionActualWidth += pb.styleWidth.Fill
 		}
-		progress.WriteRune(pb.config.Head)
+		progress.WriteRune(pb.style.Head)
 		completionActualWidth += pb.styleWidth.Head
 	}
 	for i := 0; i < (barWidth-completionActualWidth)/pb.styleWidth.Empty; i++ {
-		progress.WriteRune(pb.config.Empty)
+		progress.WriteRune(pb.style.Empty)
 	}
-	progress.WriteRune(pb.config.RightEnd)
+	progress.WriteRune(pb.style.RightEnd)
 	// Assemble
 	var assembler strings.Builder
 	assembler.Grow(pfxLen + progress.Len() + afxLen)
@@ -262,27 +340,6 @@ func (pb *Bar) Total() uint64 {
 	return pb.total
 }
 
-/*
-	Decorators
-*/
-
-// DecoratorFunc is a function that can be called by a progress bar in order to add custom informations to it.
-type DecoratorFunc func(pb *Bar) string
-
-// PrependPercent is a ready to use DecoratorAddition you can use when creating a new progress bar.
-func PrependPercent() DecoratorAddition {
-	return PrependDecorator(func(pb *Bar) string {
-		return fmt.Sprintf("%3d%% ", getPercent(pb))
-	})
-}
-
-// AppendPercent is a ready to use DecoratorAddition you can use when creating a new progress bar.
-func AppendPercent() DecoratorAddition {
-	return AppendDecorator(func(pb *Bar) string {
-		return fmt.Sprintf(" %3d%%", getPercent(pb))
-	})
-}
-
 func getPercent(pb *Bar) (percent int) {
 	progress := pb.Progress() * 100
 	percent = int(math.Round(progress))
@@ -291,34 +348,4 @@ func getPercent(pb *Bar) (percent int) {
 		percent = 99
 	}
 	return
-}
-
-// PrependTimeElapsed is a ready to use DecoratorAddition you can use when creating a new progress bar.
-func PrependTimeElapsed() DecoratorAddition {
-	return PrependDecorator(func(pb *Bar) string {
-		return fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second))
-	})
-}
-
-// AppendTimeElapsed is a ready to use DecoratorAddition you can use when creating a new progress bar.
-func AppendTimeElapsed() DecoratorAddition {
-	return AppendDecorator(func(pb *Bar) string {
-		return fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second))
-	})
-}
-
-// PrependTimeRemaining is a ready to use DecoratorAddition you can use when creating a new progress bar.
-func PrependTimeRemaining() DecoratorAddition {
-	return PrependDecorator(func(pb *Bar) string {
-		progress := pb.Progress()
-		return fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))
-	})
-}
-
-// AppendTimeRemaining is a ready to use DecoratorAddition you can use when creating a new progress bar.
-func AppendTimeRemaining() DecoratorAddition {
-	return AppendDecorator(func(pb *Bar) string {
-		progress := pb.Progress()
-		return fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))
-	})
 }
