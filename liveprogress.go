@@ -23,8 +23,8 @@ var (
 )
 
 // AddBar adds a new progress bar to the live progress. This does not start the live progress itself, see Start().
-func AddBar(total uint64, config BarConfig, decorators ...DecoratorAddition) (pb *Bar) {
-	if pb = newBar(total, config, decorators...); pb == nil {
+func AddBar(opts ...BarOption) (pb *Bar) {
+	if pb = newBar(opts...); pb == nil {
 		return
 	}
 	// Register the bar
@@ -66,8 +66,8 @@ func RemoveBar(pb *Bar) {
 
 // SetMainLineAsBar sets the main line as a bar. MainLine will always be the last line.
 // This does not start the live progress itself, see Start().
-func SetMainLineAsBar(total uint64, config BarConfig, decorators ...DecoratorAddition) (pb *Bar) {
-	if pb = newBar(total, config, decorators...); pb == nil {
+func SetMainLineAsBar(opts ...BarOption) (pb *Bar) {
+	if pb = newBar(opts...); pb == nil {
 		return
 	}
 	// Register the bar
