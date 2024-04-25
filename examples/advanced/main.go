@@ -32,9 +32,21 @@ func main() {
 	if err := liveprogress.Start(); err != nil {
 		panic(err)
 	}
-	hashRandom(size5G, liveprogress.WithWidth(40))
-	hashRandom(size8G, liveprogress.WithWidth(40), liveprogress.WithUnicodeArrowsStyle())
-	hashRandom(size3G, liveprogress.WithWidth(42), liveprogress.WithPlainStyle(), liveprogress.WithBarColor("205"))
+	hashRandom(size5G,
+		liveprogress.WithWidth(40),
+		liveprogress.WithAppendPercent("#0000FF"),
+	)
+	hashRandom(size8G,
+		liveprogress.WithWidth(40),
+		liveprogress.WithUnicodeArrowsStyle(),
+		liveprogress.WithAppendPercent("#04B575"),
+	)
+	hashRandom(size3G,
+		liveprogress.WithWidth(42),
+		liveprogress.WithPlainStyle(),
+		liveprogress.WithBarColor("205"),
+		liveprogress.WithAppendPercent("205"),
+	)
 	// Wait
 	workers.Wait()
 	liveprogress.Stop(true)
@@ -50,25 +62,22 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 	hasher := New(fd, size)
 
 	// default options
-	allOpts := []liveprogress.BarOption{
+	defaultOpts := []liveprogress.BarOption{
 		liveprogress.WithTotal(uint64(size)),
 		liveprogress.WithPrependDecorator(func(bar *liveprogress.Bar) string {
 			return fmt.Sprintf("Hashing %d bytes ", size)
 		}),
-		liveprogress.WithAppendPercent(),
 		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
 			return fmt.Sprintf("  SHA256: 0x%X", hasher.GetCurrentHash())
 		}),
 		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
 			return "  Remaining:"
 		}),
-		liveprogress.WithAppendTimeRemaining(),
+		liveprogress.WithAppendTimeRemaining(""),
 	}
 
-	allOpts = append(allOpts, opts...)
-
 	// Create the hasher progress bar
-	bar := liveprogress.AddBar(allOpts...)
+	bar := liveprogress.AddBar(append(opts, defaultOpts...)...)
 	if bar == nil {
 		panic("failed to create progress bar")
 	}
