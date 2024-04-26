@@ -7,13 +7,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/hekmon/liveterm"
 	"github.com/mattn/go-runewidth"
+	"github.com/muesli/termenv"
 )
 
 const (
 	minimumProgressWidth = 8
+	defaultTotal         = 100
 )
 
 // BarOption is a function that can be used to configure a progress bar.
@@ -81,26 +82,11 @@ func WithUnicodeArrowsStyle() BarOption {
 }
 
 // WithBarColor sets the color of the progress bar.
-// It uses lipgloss library to render the color.
-// See: https://github.com/charmbracelet/lipgloss
-// ANSI 16 colors (4-bit)
-// lipgloss.Color("5")  // magenta
-// lipgloss.Color("9")  // red
-// lipgloss.Color("12") // light blue
-// ANSI 256 Colors (8-bit)
-// lipgloss.Color("86")  // aqua
-// lipgloss.Color("201") // hot pink
-// lipgloss.Color("202") // orange
-// True Color (16,777,216 colors; 24-bit)
-// lipgloss.Color("#0000FF") // good ol' 100% blue
-// lipgloss.Color("#04B575") // a green
-// lipgloss.Color("#3C3C3C") // a dark gray
-// ...as well as a 1-bit ASCII profile, which is black and white only.
-// The terminal's color profile will be automatically detected, and colors outside the gamut
-// of the current palette will be automatically coerced to their closest available value.
+// Valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
+// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
 func WithBarColor(color string) BarOption {
 	return func(pb *Bar) {
-		pb.barStyle.Foreground(lipgloss.Color(color))
+		pb.barColor = termOutput.Color(color)
 	}
 }
 
@@ -121,74 +107,78 @@ func WithPrependDecorator(decorators ...DecoratorFunc) BarOption {
 	}
 }
 
-// WithAppendPercent adds the percentage of the progress bar to the end of the bar.
-func WithAppendPercent(color string) BarOption {
-	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
-	return func(pb *Bar) {
-		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
-			return style.Render(fmt.Sprintf("%3d%% ", getPercent(pb)))
-		})
-	}
-}
-
 // WithPrependPercent adds the percentage of the progress bar to the beginning of the bar.
+// Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
+// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
 func WithPrependPercent(color string) BarOption {
-	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
+	foregroundColor := termOutput.Color(color)
 	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
-			return style.Render(fmt.Sprintf("%3d%% ", getPercent(pb)))
+			return termOutput.String(fmt.Sprintf("%3d%% ", getPercent(pb))).Foreground(foregroundColor).String()
 		})
 	}
 }
 
-// WithAppendTimeElapsed adds the time elapsed since the creation of the progress bar to the end of the bar.
-func WithAppendTimeElapsed(color string) BarOption {
-	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
+// WithAppendPercent adds the percentage of the progress bar to the end of the bar.
+// Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
+// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
+func WithAppendPercent(color string) BarOption {
+	foregroundColor := termOutput.Color(color)
 	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
-			return style.Render(fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second)))
+			return termOutput.String(fmt.Sprintf(" %3d%%", getPercent(pb))).Foreground(foregroundColor).String()
 		})
 	}
 }
 
 // WithPrependTimeElapsed adds the time elapsed since the creation of the progress bar to the beginning of the bar.
+// Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
+// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
 func WithPrependTimeElapsed(color string) BarOption {
-	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
+	foregroundColor := termOutput.Color(color)
 	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
-			return style.Render(fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second)))
+			return termOutput.String(fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second))).Foreground(foregroundColor).String()
 		})
 	}
 }
 
-// WithAppendTimeRemaining adds the time remaining until the end of the progress bar to the end of the bar.
-func WithAppendTimeRemaining(color string) BarOption {
-	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
+// WithAppendTimeElapsed adds the time elapsed since the creation of the progress bar to the end of the bar.
+// Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
+// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
+func WithAppendTimeElapsed(color string) BarOption {
+	foregroundColor := termOutput.Color(color)
 	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
-			progress := pb.Progress()
-			return style.Render(fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second)))
+			return termOutput.String(fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second))).Foreground(foregroundColor).String()
 		})
 	}
 }
 
 // WithPrependTimeRemaining adds the time remaining until the end of the progress bar to the beginning of the bar.
+// Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
+// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
 func WithPrependTimeRemaining(color string) BarOption {
-	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
+	foregroundColor := termOutput.Color(color)
 	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
 			progress := pb.Progress()
-			return style.Render(fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second)))
+			return termOutput.String(fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))).Foreground(foregroundColor).String()
 		})
 	}
 }
 
-type barStyleWidth struct {
-	LeftEnd  int
-	Fill     int
-	Head     int
-	Empty    int
-	RightEnd int
+// WithAppendTimeRemaining adds the time remaining until the end of the progress bar to the end of the bar.
+// Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
+// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
+func WithAppendTimeRemaining(color string) BarOption {
+	foregroundColor := termOutput.Color(color)
+	return func(pb *Bar) {
+		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
+			progress := pb.Progress()
+			return termOutput.String(fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))).Foreground(foregroundColor).String()
+		})
+	}
 }
 
 // BarStyle is the style of a progress bar.
@@ -210,13 +200,21 @@ func (b BarStyle) width() barStyleWidth {
 	}
 }
 
+type barStyleWidth struct {
+	LeftEnd  int
+	Fill     int
+	Head     int
+	Empty    int
+	RightEnd int
+}
+
 // Bar is a progress bar that can be added to the live progress. Do not instanciate it directly, use AddBar() instead.
 type Bar struct {
 	// style
 	width      int
 	style      BarStyle
 	styleWidth barStyleWidth
-	barStyle   lipgloss.Style
+	barColor   termenv.Color
 	// progress
 	current atomic.Uint64
 	total   uint64
@@ -226,7 +224,7 @@ type Bar struct {
 	appendFuncs  []DecoratorFunc
 }
 
-func newBar(opts ...BarOption) *Bar {
+func newBar(opts ...BarOption) (b *Bar) {
 	style := BarStyle{
 		LeftEnd:  '[',
 		Fill:     '=',
@@ -234,17 +232,16 @@ func newBar(opts ...BarOption) *Bar {
 		Empty:    '-',
 		RightEnd: ']',
 	}
-	bar := Bar{
+	b = &Bar{
 		style:      style,
 		styleWidth: style.width(),
-		barStyle:   lipgloss.NewStyle(),
 		createdAt:  time.Now(),
-		total:      100,
+		total:      defaultTotal,
 	}
 	for _, opt := range opts {
-		opt(&bar)
+		opt(b)
 	}
-	return &bar
+	return
 }
 
 // Current returns the current value of the progress bar.
@@ -347,7 +344,11 @@ func (pb *Bar) String() string {
 	for _, line := range pfx {
 		assembler.WriteString(line)
 	}
-	assembler.WriteString(pb.barStyle.Render(progress.String()))
+	if pb.barColor != nil {
+		assembler.WriteString(termOutput.String(progress.String()).Foreground(pb.barColor).String())
+	} else {
+		assembler.WriteString(progress.String())
+	}
 	for _, line := range afx {
 		assembler.WriteString(line)
 	}

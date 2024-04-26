@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hekmon/liveterm"
+	"github.com/muesli/termenv"
 )
 
 var (
@@ -17,6 +18,7 @@ var (
 )
 
 var (
+	termOutput  *termenv.Output
 	items       []fmt.Stringer
 	mainItem    fmt.Stringer
 	itemsAccess sync.Mutex
@@ -34,7 +36,7 @@ func AddBar(opts ...BarOption) (pb *Bar) {
 	return
 }
 
-// RemoveAll removes all bars and custom lines from the live progress but do not stops the liveprogress itself.
+// RemoveAll removes all bars and custom lines from the live progress but does not stop the liveprogress itself.
 func RemoveAll() {
 	itemsAccess.Lock()
 	items = make([]fmt.Stringer, 0, 1)
@@ -78,21 +80,25 @@ func SetMainLineAsBar(opts ...BarOption) (pb *Bar) {
 }
 
 // Start starts the live progress. It will render every bar and custom line added.
-// It is imported to note that output (default to os.Stdout) should not be used after Start() is called and until Stop() is called.
-// Se ByPass() to get a writer that will bypass the live progress and write directly to the output without being wiped between Start() and Stop().
+// It is important to note that Output (default to os.Stdout) should not be used directly (for example with fmt.Print*()) after Start() is called and until Stop() is called.
+// See ByPass() to get a writer that will bypass the live progress and write directly to the output without disrupting it.
 func Start() (err error) {
 	liveterm.RefreshInterval = RefreshInterval
 	liveterm.Output = Output
 	liveterm.SetMultiLinesUpdateFx(updater)
-	return liveterm.Start()
+	if err = liveterm.Start(); err != nil {
+		termOutput = termenv.NewOutput(os.Stdout)
+	}
+	return
 }
 
 // Stop stops the live progress and remove. Set clear to true to clear the liveprogress output.
-// After this output can be used directly again.
+// After this call, Output can be used directly again.
 func Stop(clear bool) {
 	// if clear is false, liveterm will call updater one last time (and thus locking the mutex)
 	liveterm.Stop(clear)
 	RemoveAll()
+	termOutput = nil
 }
 
 func updater() (lines []string) {
