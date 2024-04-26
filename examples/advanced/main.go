@@ -41,10 +41,10 @@ func main() {
 	}
 	liveprogress.SetMainLineAsCustomLine(spinner.Next)
 	// File 1
-	style := liveprogress.BaseStyle().Foreground(basicANSIGreenColor)
+	style := liveprogress.BaseStyle().Foreground(rgbPinkColor)
 	hashRandom(size5G,
 		liveprogress.WithWidth(barWidth),
-		liveprogress.WithLineBracketStyle(),
+		liveprogress.WithPlainStyle(),
 		liveprogress.WithBarStyle(style),
 		liveprogress.WithAppendPercent(style),
 	)
@@ -57,10 +57,10 @@ func main() {
 		liveprogress.WithAppendPercent(style),
 	)
 	// File 3
-	style = liveprogress.BaseStyle().Foreground(rgbPinkColor)
+	style = liveprogress.BaseStyle().Foreground(basicANSIGreenColor)
 	hashRandom(size3G,
 		liveprogress.WithWidth(barWidth),
-		liveprogress.WithPlainStyle(),
+		liveprogress.WithLineBracketStyle(),
 		liveprogress.WithBarStyle(style),
 		liveprogress.WithAppendPercent(style),
 	)
