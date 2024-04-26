@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	if err := liveprogress.Start(liveprogress.DefaultRefreshInterval); err != nil {
+	if err := liveprogress.Start(); err != nil {
 		panic(err)
 	}
 	bar := liveprogress.AddBar(

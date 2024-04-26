@@ -11,10 +11,10 @@ import (
 	"github.com/muesli/termenv"
 )
 
-const (
-	// DefaultRefreshInterval is the recommended value for Start().
+var (
+	// RefreshInterval is the value Start() will use to refresh the live progress.
 	// Setting it lower might flicker the terminal and increase CPU usage.
-	DefaultRefreshInterval = 100 * time.Millisecond
+	RefreshInterval = 100 * time.Millisecond
 )
 
 var (
@@ -98,11 +98,8 @@ func SetMainLineAsBar(opts ...BarOption) (pb *Bar) {
 // It is important to note that Output (default to os.Stdout) should not be used directly (for example with fmt.Print*()) after Start() is called and until Stop() is called.
 // See SetOutput() to change the output writer (call it before anything else).
 // See ByPass() to get a writer that will bypass the live progress and write directly to the output without disrupting it.
-func Start(refreshInterval time.Duration) (err error) {
-	if refreshInterval <= time.Millisecond {
-		refreshInterval = DefaultRefreshInterval
-	}
-	liveterm.RefreshInterval = refreshInterval
+func Start() (err error) {
+	liveterm.RefreshInterval = RefreshInterval
 	liveterm.Output = output
 	liveterm.SetMultiLinesUpdateFx(updater)
 	return liveterm.Start()

@@ -26,9 +26,10 @@ var (
 func main() {
 	// Global config (these are already the default values)
 	liveprogress.SetOutput(os.Stdout)
+	liveprogress.RefreshInterval = 100 * time.Millisecond
 	// Go
 	liveprogress.SetMainLineAsCustomLine(spinner.Next)
-	if err := liveprogress.Start(50 * time.Millisecond); err != nil {
+	if err := liveprogress.Start(); err != nil {
 		panic(err)
 	}
 	hashRandom(size5G,
