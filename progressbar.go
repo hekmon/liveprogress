@@ -36,16 +36,16 @@ func WithWidth(width int) BarOption {
 }
 
 // WithStyle sets the style of the progress bar.
-func WithStyle(style BarStyle) BarOption {
+func WithRunes(style BarStyle) BarOption {
 	return func(pb *Bar) {
 		pb.style = style
 		pb.styleWidth = style.width()
 	}
 }
 
-// WithASCIIStyle sets the style of the progress bar to an ASCII style.
-func WithASCIIStyle() BarOption {
-	return WithStyle(BarStyle{
+// WithASCIIStyle sets the style of the progress bar to an ASCII style. This is applied by default.
+func WithASCIIRunes() BarOption {
+	return WithRunes(BarStyle{
 		LeftEnd:  '[',
 		Fill:     '=',
 		Head:     '>',
@@ -55,8 +55,8 @@ func WithASCIIStyle() BarOption {
 }
 
 // WithPlainStyle sets the style of the progress bar to a plain style.
-func WithPlainStyle() BarOption {
-	return WithStyle(BarStyle{
+func WithPlainRunes() BarOption {
+	return WithRunes(BarStyle{
 		LeftEnd:  0,
 		Fill:     '█',
 		Head:     '▌',
@@ -66,8 +66,8 @@ func WithPlainStyle() BarOption {
 }
 
 // WithLineStyle sets the style of the progress bar to an box drawing lines style.
-func WithLineFillStyle() BarOption {
-	return WithStyle(BarStyle{
+func WithLineFillRunes() BarOption {
+	return WithRunes(BarStyle{
 		LeftEnd:  0,
 		Fill:     '━',
 		Head:     '╍',
@@ -77,8 +77,8 @@ func WithLineFillStyle() BarOption {
 }
 
 // WithLineStyle sets the style of the progress bar to an box drawing lines style.
-func WithLineBracketStyle() BarOption {
-	return WithStyle(BarStyle{
+func WithLineBracketsRunes() BarOption {
+	return WithRunes(BarStyle{
 		LeftEnd:  '┣',
 		Fill:     '━',
 		Head:     '╸',
@@ -222,7 +222,7 @@ func newBar(opts ...BarOption) (b *Bar) {
 		total:     DefaultTotal,
 		createdAt: time.Now(),
 	}
-	WithASCIIStyle()(b) // default, can be overridden by opts
+	WithASCIIRunes()(b) // default, can be overridden by opts
 	for _, opt := range opts {
 		opt(b)
 	}
