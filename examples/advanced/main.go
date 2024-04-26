@@ -36,10 +36,10 @@ func main() {
 	liveprogress.Output = os.Stdout
 	liveprogress.RefreshInterval = 100 * time.Millisecond
 	// Go
-	liveprogress.SetMainLineAsCustomLine(spinner.Next)
 	if err := liveprogress.Start(); err != nil {
 		panic(err)
 	}
+	liveprogress.SetMainLineAsCustomLine(spinner.Next)
 	// File 1
 	style := liveprogress.BaseStyle().Foreground(basicANSIGreenColor)
 	hashRandom(size5G,
@@ -79,15 +79,15 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 	}
 	// Create the hasher
 	hasher := New(fd, size)
-
 	// default options
+	bold := liveprogress.BaseStyle().Bold()
 	defaultOpts := []liveprogress.BarOption{
 		liveprogress.WithTotal(uint64(size)),
 		liveprogress.WithPrependDecorator(func(bar *liveprogress.Bar) string {
 			return fmt.Sprintf("Hashing %d bytes ", size)
 		}),
 		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
-			return fmt.Sprintf("  SHA256: 0x%X", hasher.GetCurrentHash())
+			return fmt.Sprintf("  SHA256: %s", bold.Styled(fmt.Sprintf("0x%X", hasher.GetCurrentHash())))
 		}),
 		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
 			return "  Remaining:"
