@@ -1,9 +1,9 @@
 # liveprogress
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/hekmon/liveprogress)](https://pkg.go.dev/github.com/hekmon/liveprogress)
 
-liveprogress is a golang library allowing to print and update progress bars on a terminal. It is heavily inspired by [uiprogress](https://github.com/gosuri/uiprogress) but redone on top of the forked [liveterm](https://github.com/hekmon/liveterm) library in order to take advantage of its enhancements.
+liveprogress is a golang library allowing to print and update progress bars on a terminal. It is heavily inspired by [uiprogress](https://github.com/gosuri/uiprogress) but redone on top of the forked [liveterm](https://github.com/hekmon/liveterm/v2) library in order to take advantage of its enhancements.
 
-In addition of the features of [liveterm](https://github.com/hekmon/liveterm), it also adds:
+In addition of the features of [liveterm](https://github.com/hekmon/liveterm/v2), it also adds:
 * Automatic bar length if its `width` is 0
 * Custom (dynamic) lines that can be anything (not necessarly a progress bar)
 * Main line concept: a bar or a custom line that will always be printed last (usefull for global progress when others lines indicate specific progress)

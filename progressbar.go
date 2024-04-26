@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/hekmon/liveterm"
+	"github.com/hekmon/liveterm/v2"
 	"github.com/mattn/go-runewidth"
 	"github.com/muesli/termenv"
 )

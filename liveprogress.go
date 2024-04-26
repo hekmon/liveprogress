@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hekmon/liveterm"
+	"github.com/hekmon/liveterm/v2"
 	"github.com/muesli/termenv"
 )
 
@@ -107,11 +107,12 @@ func Start() (err error) {
 
 // Stop stops the live progress and remove. Set clear to true to clear the liveprogress output.
 // After this call, Output can be used directly again.
-func Stop(clear bool) {
+func Stop(clear bool) (err error) {
 	// if clear is false, liveterm will call updater one last time (and thus locking the mutex)
-	liveterm.Stop(clear)
+	err = liveterm.Stop(clear)
 	RemoveAll()
 	termOutput = nil
+	return
 }
 
 func updater() (lines []string) {
