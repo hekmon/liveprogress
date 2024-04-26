@@ -32,7 +32,7 @@ var (
 
 func main() {
 	// Global config (these are already the default values)
-	liveprogress.SetOutput(os.Stdout)
+	liveprogress.Output = os.Stdout
 	liveprogress.RefreshInterval = 100 * time.Millisecond
 	// Go
 	liveprogress.SetMainLineAsCustomLine(spinner.Next)

@@ -15,31 +15,17 @@ var (
 	// RefreshInterval is the value Start() will use to refresh the live progress.
 	// Setting it lower might flicker the terminal and increase CPU usage.
 	RefreshInterval = 100 * time.Millisecond
+	// Output is the writer the live progress will write to.
+	Output = os.Stdout
 )
 
 var (
-	output      io.Writer
-	termOutput  *termenv.Output
 	items       []fmt.Stringer
 	mainItem    fmt.Stringer
 	itemsAccess sync.Mutex
 )
 
-func init() {
-	// Even if liveprogress is not started, bar options will need termOutput to be set
-	// so we set it to os.Stdout by default, user can change it with SetOutput()
-	SetOutput(os.Stdout)
-}
-
-// SetOutput sets the output writer for the live progress.
-// Default is os.Stdout and if you wish to change it (for example by os.Stderr),
-// you should do it before creating any bar, custom line or starting the live progress.
-func SetOutput(out io.Writer) {
-	output = out
-	termOutput = termenv.NewOutput(output)
-}
-
-// AddBar adds a new progress bar to the live progress. This does not start the live progress itself, see Start().
+// AddBar adds a new progress bar to the live progress. Only call it after Start() has been called.
 func AddBar(opts ...BarOption) (pb *Bar) {
 	if pb = newBar(opts...); pb == nil {
 		return
@@ -49,6 +35,13 @@ func AddBar(opts ...BarOption) (pb *Bar) {
 	items = append(items, pb)
 	itemsAccess.Unlock()
 	return
+}
+
+// GetTermProfile returns the termenv profile used by liveprogress.
+// It can be used to create styles and colors that will be compatible with the terminal.
+// Only call this function after Start() has been called.
+func GetTermProfil() termenv.Profile {
+	return liveterm.GetTermProfil()
 }
 
 // RemoveAll removes all bars and custom lines from the live progress but does not stop the liveprogress itself.
@@ -82,7 +75,7 @@ func RemoveBar(pb *Bar) {
 }
 
 // SetMainLineAsBar sets the main line as a bar. MainLine will always be the last line.
-// This does not start the live progress itself, see Start().
+// Only call it after Start() has been called.
 func SetMainLineAsBar(opts ...BarOption) (pb *Bar) {
 	if pb = newBar(opts...); pb == nil {
 		return
@@ -100,9 +93,10 @@ func SetMainLineAsBar(opts ...BarOption) (pb *Bar) {
 // See ByPass() to get a writer that will bypass the live progress and write directly to the output without disrupting it.
 func Start() (err error) {
 	liveterm.RefreshInterval = RefreshInterval
-	liveterm.Output = output
+	liveterm.Output = Output
 	liveterm.SetMultiLinesUpdateFx(updater)
-	return liveterm.Start()
+	err = liveterm.Start()
+	return
 }
 
 // Stop stops the live progress and remove. Set clear to true to clear the liveprogress output.
@@ -111,7 +105,6 @@ func Stop(clear bool) (err error) {
 	// if clear is false, liveterm will call updater one last time (and thus locking the mutex)
 	err = liveterm.Stop(clear)
 	RemoveAll()
-	termOutput = nil
 	return
 }
 
@@ -188,7 +181,7 @@ func RemoveCustomLine(cl *CustomLine) {
 }
 
 // SetMainLineAsCustomLine sets the main line as a custom line. MainLine will always be the last line.
-// This does not start the live progress itself, see Start().
+// Only call it after Start() has been called.
 func SetMainLineAsCustomLine(generator func() string) (cl *CustomLine) {
 	if generator == nil {
 		return

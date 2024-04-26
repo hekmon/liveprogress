@@ -81,7 +81,7 @@ func WithUnicodeLightStyle() BarOption {
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
 func WithBarColor(color string) BarOption {
 	return func(pb *Bar) {
-		pb.barColor = termOutput.Color(color)
+		pb.barColor = liveterm.GetTermProfil().Color(color)
 	}
 }
 
@@ -106,10 +106,10 @@ func WithPrependDecorator(decorators ...DecoratorFunc) BarOption {
 // Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
 func WithPrependPercent(color string) BarOption {
-	foregroundColor := termOutput.Color(color)
+	foregroundColor := liveterm.GetTermProfil().Color(color)
 	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
-			return termOutput.String(fmt.Sprintf("%3d%% ", getPercent(pb))).Foreground(foregroundColor).String()
+			return liveterm.GetTermProfil().String(fmt.Sprintf("%3d%% ", getPercent(pb))).Foreground(foregroundColor).String()
 		})
 	}
 }
@@ -118,10 +118,10 @@ func WithPrependPercent(color string) BarOption {
 // Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
 func WithAppendPercent(color string) BarOption {
-	foregroundColor := termOutput.Color(color)
+	foregroundColor := liveterm.GetTermProfil().Color(color)
 	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
-			return termOutput.String(fmt.Sprintf(" %3d%%", getPercent(pb))).Foreground(foregroundColor).String()
+			return liveterm.GetTermProfil().String(fmt.Sprintf(" %3d%%", getPercent(pb))).Foreground(foregroundColor).String()
 		})
 	}
 }
@@ -130,10 +130,10 @@ func WithAppendPercent(color string) BarOption {
 // Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
 func WithPrependTimeElapsed(color string) BarOption {
-	foregroundColor := termOutput.Color(color)
+	foregroundColor := liveterm.GetTermProfil().Color(color)
 	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
-			return termOutput.String(fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second))).Foreground(foregroundColor).String()
+			return liveterm.GetTermProfil().String(fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second))).Foreground(foregroundColor).String()
 		})
 	}
 }
@@ -142,10 +142,10 @@ func WithPrependTimeElapsed(color string) BarOption {
 // Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
 func WithAppendTimeElapsed(color string) BarOption {
-	foregroundColor := termOutput.Color(color)
+	foregroundColor := liveterm.GetTermProfil().Color(color)
 	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
-			return termOutput.String(fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second))).Foreground(foregroundColor).String()
+			return liveterm.GetTermProfil().String(fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second))).Foreground(foregroundColor).String()
 		})
 	}
 }
@@ -154,11 +154,11 @@ func WithAppendTimeElapsed(color string) BarOption {
 // Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
 func WithPrependTimeRemaining(color string) BarOption {
-	foregroundColor := termOutput.Color(color)
+	foregroundColor := liveterm.GetTermProfil().Color(color)
 	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
 			progress := pb.Progress()
-			return termOutput.String(fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))).Foreground(foregroundColor).String()
+			return liveterm.GetTermProfil().String(fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))).Foreground(foregroundColor).String()
 		})
 	}
 }
@@ -167,11 +167,11 @@ func WithPrependTimeRemaining(color string) BarOption {
 // Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
 func WithAppendTimeRemaining(color string) BarOption {
-	foregroundColor := termOutput.Color(color)
+	foregroundColor := liveterm.GetTermProfil().Color(color)
 	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
 			progress := pb.Progress()
-			return termOutput.String(fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))).Foreground(foregroundColor).String()
+			return liveterm.GetTermProfil().String(fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))).Foreground(foregroundColor).String()
 		})
 	}
 }
@@ -332,7 +332,7 @@ func (pb *Bar) String() string {
 		assembler.WriteString(line)
 	}
 	if pb.barColor != nil {
-		assembler.WriteString(termOutput.String(progress.String()).Foreground(pb.barColor).String())
+		assembler.WriteString(liveterm.GetTermProfil().String(progress.String()).Foreground(pb.barColor).String())
 	} else {
 		assembler.WriteString(progress.String())
 	}
