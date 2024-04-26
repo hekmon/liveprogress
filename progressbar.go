@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/hekmon/liveterm"
 	"github.com/mattn/go-runewidth"
 )
@@ -63,7 +64,7 @@ func WithPlainStyle() BarOption {
 		pb.style = BarStyle{
 			LeftEnd:  0,
 			Fill:     '█',
-			Head:     '▌',
+			Head:     '█',
 			Empty:    '░',
 			RightEnd: 0,
 		}
@@ -81,6 +82,31 @@ func WithUnicodeArrowsStyle() BarOption {
 			Empty:    ' ',
 			RightEnd: '▸',
 		}
+		return nil
+	}
+}
+
+// WithBarColor sets the color of the progress bar.
+// It uses lipgloss library to render the color.
+// See: https://github.com/charmbracelet/lipgloss
+// ANSI 16 colors (4-bit)
+// lipgloss.Color("5")  // magenta
+// lipgloss.Color("9")  // red
+// lipgloss.Color("12") // light blue
+// ANSI 256 Colors (8-bit)
+// lipgloss.Color("86")  // aqua
+// lipgloss.Color("201") // hot pink
+// lipgloss.Color("202") // orange
+// True Color (16,777,216 colors; 24-bit)
+// lipgloss.Color("#0000FF") // good ol' 100% blue
+// lipgloss.Color("#04B575") // a green
+// lipgloss.Color("#3C3C3C") // a dark gray
+// ...as well as a 1-bit ASCII profile, which is black and white only.
+// The terminal's color profile will be automatically detected, and colors outside the gamut
+// of the current palette will be automatically coerced to their closest available value.
+func WithBarColor(color string) BarOption {
+	return func(pb *Bar) error {
+		pb.barStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(color))
 		return nil
 	}
 }
@@ -105,62 +131,68 @@ func WithPrependDecorator(decorators ...DecoratorFunc) BarOption {
 }
 
 // WithAppendPercent adds the percentage of the progress bar to the end of the bar.
-func WithAppendPercent() BarOption {
+func WithAppendPercent(color string) BarOption {
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
 	return func(pb *Bar) error {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
-			return fmt.Sprintf("%3d%% ", getPercent(pb))
+			return style.Render(fmt.Sprintf("%3d%% ", getPercent(pb)))
 		})
 		return nil
 	}
 }
 
 // WithPrependPercent adds the percentage of the progress bar to the beginning of the bar.
-func WithPrependPercent() BarOption {
+func WithPrependPercent(color string) BarOption {
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
 	return func(pb *Bar) error {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
-			return fmt.Sprintf("%3d%% ", getPercent(pb))
+			return style.Render(fmt.Sprintf("%3d%% ", getPercent(pb)))
 		})
 		return nil
 	}
 }
 
 // WithAppendTimeElapsed adds the time elapsed since the creation of the progress bar to the end of the bar.
-func WithAppendTimeElapsed() BarOption {
+func WithAppendTimeElapsed(color string) BarOption {
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
 	return func(pb *Bar) error {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
-			return fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second))
+			return style.Render(fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second)))
 		})
 		return nil
 	}
 }
 
 // WithPrependTimeElapsed adds the time elapsed since the creation of the progress bar to the beginning of the bar.
-func WithPrependTimeElapsed() BarOption {
+func WithPrependTimeElapsed(color string) BarOption {
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
 	return func(pb *Bar) error {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
-			return fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second))
+			return style.Render(fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second)))
 		})
 		return nil
 	}
 }
 
 // WithAppendTimeRemaining adds the time remaining until the end of the progress bar to the end of the bar.
-func WithAppendTimeRemaining() BarOption {
+func WithAppendTimeRemaining(color string) BarOption {
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
 	return func(pb *Bar) error {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
 			progress := pb.Progress()
-			return fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))
+			return style.Render(fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second)))
 		})
 		return nil
 	}
 }
 
 // WithPrependTimeRemaining adds the time remaining until the end of the progress bar to the beginning of the bar.
-func WithPrependTimeRemaining() BarOption {
+func WithPrependTimeRemaining(color string) BarOption {
+	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
 	return func(pb *Bar) error {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
 			progress := pb.Progress()
-			return fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))
+			return style.Render(fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second)))
 		})
 		return nil
 	}
@@ -199,6 +231,7 @@ type Bar struct {
 	width      int
 	style      BarStyle
 	styleWidth barStyleWidth
+	barStyle   lipgloss.Style
 	// progress
 	current atomic.Uint64
 	total   uint64
@@ -219,6 +252,7 @@ func newBar(opts ...BarOption) *Bar {
 	bar := Bar{
 		style:      style,
 		styleWidth: style.width(),
+		barStyle:   lipgloss.NewStyle(),
 		createdAt:  time.Now(),
 		total:      100,
 	}
@@ -328,7 +362,7 @@ func (pb *Bar) String() string {
 	for _, line := range pfx {
 		assembler.WriteString(line)
 	}
-	assembler.WriteString(progress.String())
+	assembler.WriteString(pb.barStyle.Render(progress.String()))
 	for _, line := range afx {
 		assembler.WriteString(line)
 	}

@@ -15,7 +15,7 @@ func main() {
 	bar := liveprogress.AddBar(
 		liveprogress.WithPlainStyle(),
 		liveprogress.WithWidth(78),
-		liveprogress.WithPrependPercent(),
+		liveprogress.WithPrependPercent(""),
 	)
 	// By default a bar total is set to 100
 	// As we omit it in AddBar()
