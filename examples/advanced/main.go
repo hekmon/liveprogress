@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hekmon/liveprogress"
+	"github.com/muesli/termenv"
 )
 
 var (
@@ -20,9 +21,9 @@ var (
 	// bar width for example
 	barWidth = 40
 	// colors, see https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
-	basicANSIGreenColor      = "2"
-	extendedAINSIPurpleColor = "93"
-	rgbPinkColor             = "#ff5faf"
+	basicANSIGreenColor      termenv.ANSIColor    = termenv.ANSIGreen
+	extendedAINSIPurpleColor termenv.ANSI256Color = 93
+	rgbPinkColor             termenv.RGBColor     = "#ff5faf"
 )
 
 var (
@@ -39,9 +40,8 @@ func main() {
 	if err := liveprogress.Start(); err != nil {
 		panic(err)
 	}
-	termProfil := liveprogress.GetTermProfil() // always call it after start
 	// File 1
-	style := liveprogress.BaseStyle().Foreground(termProfil.Color(basicANSIGreenColor))
+	style := liveprogress.BaseStyle().Foreground(basicANSIGreenColor)
 	hashRandom(size5G,
 		liveprogress.WithWidth(barWidth),
 		liveprogress.WithASCIIStyle(), // default, not really needed
@@ -49,7 +49,7 @@ func main() {
 		liveprogress.WithAppendPercent(style),
 	)
 	// File 2
-	style = liveprogress.BaseStyle().Foreground(termProfil.Color(extendedAINSIPurpleColor))
+	style = liveprogress.BaseStyle().Foreground(extendedAINSIPurpleColor)
 	hashRandom(size8G,
 		liveprogress.WithWidth(barWidth),
 		liveprogress.WithUnicodeLightStyle(),
@@ -57,7 +57,7 @@ func main() {
 		liveprogress.WithAppendPercent(style),
 	)
 	// File 3
-	style = liveprogress.BaseStyle().Foreground(termProfil.Color(rgbPinkColor))
+	style = liveprogress.BaseStyle().Foreground(rgbPinkColor)
 	hashRandom(size3G,
 		liveprogress.WithWidth(barWidth),
 		liveprogress.WithPlainStyle(),
