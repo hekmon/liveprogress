@@ -77,14 +77,12 @@ func WithUnicodeLightStyle() BarOption {
 }
 
 // BaseStyle returns a base termenv style with its terminal profile correctly set.
-// You can use it to create your own styles with the returned base style. Only call it after Start() has been called.
+// You can use it to create your own styles with the returned base style.
 func BaseStyle() termenv.Style {
 	return liveterm.GetTermProfil().String()
 }
 
-// WithBarColor sets the color of the progress bar.
-// Valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
-// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
+// WithBarColor sets the color of the progress bar. See advanced example for style usage.
 func WithBarStyle(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.barStyle = style
