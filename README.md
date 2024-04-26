@@ -15,17 +15,15 @@ In addition of the features of [liveterm](https://github.com/hekmon/liveterm), i
 Code available [here](examples/simple/main.go).
 
 ```go
-// Config
-liveprogress.DefaultConfig.Width = 70 // leave it a 0 for automatic width
-countTo := 100
-// Go
 if err := liveprogress.Start(); err != nil {
 	panic(err)
 }
-bar := liveprogress.AddBar(uint64(countTo), liveprogress.DefaultConfig,
-	liveprogress.PrependPercent(),
+bar := liveprogress.AddBar(
+	liveprogress.WithWidth(76), // remove for automatic size
+	liveprogress.WithPrependPercent(""), // "" for no color
 )
-for i := 0; i < countTo; i++ {
+// By default a bar total is set to 100
+for i := 0; i < liveprogress.DefaultTotal; i++ {
 	// Wait a random time
 	time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond)
 	// Increment the bar

@@ -13,11 +13,10 @@ func main() {
 		panic(err)
 	}
 	bar := liveprogress.AddBar(
-		liveprogress.WithWidth(76),
-		liveprogress.WithPrependPercent(""),
+		liveprogress.WithWidth(76),          // remove for automatic size
+		liveprogress.WithPrependPercent(""), // "" for no color
 	)
 	// By default a bar total is set to 100
-	// As we omit it in AddBar()
 	for i := 0; i < liveprogress.DefaultTotal; i++ {
 		// Wait a random time
 		time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond)

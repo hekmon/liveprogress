@@ -13,9 +13,12 @@ import (
 )
 
 var (
+	// sizes
 	size3G = 3 * 1024 * 1024 * 1024
 	size5G = 5 * 1024 * 1024 * 1024
 	size8G = 8 * 1024 * 1024 * 1024
+	// bar width for example
+	barWidth = 40
 	// colors, see https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
 	basicANSIGreenColor      = "2"
 	extendedAINSIPurpleColor = "93"
@@ -37,19 +40,19 @@ func main() {
 		panic(err)
 	}
 	hashRandom(size5G,
-		liveprogress.WithWidth(40),
-		liveprogress.WithASCIIStyle(), // default
+		liveprogress.WithWidth(barWidth),
+		liveprogress.WithASCIIStyle(), // default, not really needed
 		liveprogress.WithBarColor(basicANSIGreenColor),
 		liveprogress.WithAppendPercent(basicANSIGreenColor),
 	)
 	hashRandom(size8G,
-		liveprogress.WithWidth(40),
+		liveprogress.WithWidth(barWidth),
 		liveprogress.WithUnicodeLightStyle(),
 		liveprogress.WithBarColor(extendedAINSIPurpleColor),
 		liveprogress.WithAppendPercent(extendedAINSIPurpleColor),
 	)
 	hashRandom(size3G,
-		liveprogress.WithWidth(42), // we add 2 more chars to the bar to keep it align with the other 2 because PlainStyle has no LeftEnd and RightEnd runes set
+		liveprogress.WithWidth(barWidth),
 		liveprogress.WithPlainStyle(),
 		liveprogress.WithBarColor(rgbPinkColor),
 		liveprogress.WithAppendPercent(rgbPinkColor),
