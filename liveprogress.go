@@ -41,14 +41,14 @@ func AddBar(opts ...BarOption) (pb *Bar) {
 // You can use it to create your own styles with the returned base style.
 // You should call this function after Start() if you have changed default Output value.
 func BaseStyle() termenv.Style {
-	return liveterm.GetTermProfil().String()
+	return liveterm.GetTermProfile().String()
 }
 
 // GetTermProfile returns the termenv profile used by liveprogress.
 // It can be used to create styles and colors that will be compatible with the terminal.
 // You should call this function after Start() if you have changed default Output value.
 func GetTermProfile() termenv.Profile {
-	return liveterm.GetTermProfil()
+	return liveterm.GetTermProfile()
 }
 
 // RemoveAll removes all bars and custom lines from the live progress but does not stop the liveprogress itself.
