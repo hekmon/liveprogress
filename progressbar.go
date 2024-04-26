@@ -69,12 +69,12 @@ func WithPlainStyle() BarOption {
 }
 
 // WithUnicodeArrowsStyle sets the style of the progress bar to an Unicode arrows style.
-func WithUnicodeArrowsStyle() BarOption {
+func WithUnicodeLightStyle() BarOption {
 	return func(pb *Bar) {
 		pb.style = BarStyle{
 			LeftEnd:  '◂',
-			Fill:     '⎯',
-			Head:     '→',
+			Fill:     '─',
+			Head:     '╴',
 			Empty:    ' ',
 			RightEnd: '▸',
 		}
