@@ -23,6 +23,8 @@ func main() {
 		// Increment the bar
 		bar.CurrentIncrement()
 	}
-	liveprogress.Stop(true)
+	if err := liveprogress.Stop(true); err != nil {
+		panic(err)
+	}
 	fmt.Println("By setting the Stop() bool parameter to true, the progress bar is cleared at stop.")
 }
