@@ -47,7 +47,7 @@ func BaseStyle() termenv.Style {
 // GetTermProfile returns the termenv profile used by liveprogress.
 // It can be used to create styles and colors that will be compatible with the terminal.
 // You should call this function after Start() if you have changed default Output value.
-func GetTermProfil() termenv.Profile {
+func GetTermProfile() termenv.Profile {
 	return liveterm.GetTermProfil()
 }
 
