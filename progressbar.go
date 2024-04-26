@@ -66,13 +66,24 @@ func WithPlainStyle() BarOption {
 }
 
 // WithLineStyle sets the style of the progress bar to an box drawing lines style.
-func WithLineStyle() BarOption {
+func WithLineFillStyle() BarOption {
 	return WithStyle(BarStyle{
-		LeftEnd:  '├',
-		Fill:     '─',
-		Head:     '╴',
+		LeftEnd:  0,
+		Fill:     '━',
+		Head:     '╍',
+		Empty:    '┅',
+		RightEnd: 0,
+	})
+}
+
+// WithLineStyle sets the style of the progress bar to an box drawing lines style.
+func WithLineBracketStyle() BarOption {
+	return WithStyle(BarStyle{
+		LeftEnd:  '┣',
+		Fill:     '━',
+		Head:     '╸',
 		Empty:    ' ',
-		RightEnd: '┤',
+		RightEnd: '┫',
 	})
 }
 
