@@ -66,7 +66,9 @@ func main() {
 	)
 	// Wait
 	workers.Wait()
-	liveprogress.Stop(true)
+	if err := liveprogress.Stop(true); err != nil {
+		panic(err)
+	}
 }
 
 func hashRandom(size int, opts ...liveprogress.BarOption) {
