@@ -89,7 +89,6 @@ func SetMainLineAsBar(opts ...BarOption) (pb *Bar) {
 
 // Start starts the live progress. It will render every bars and custom lines added previously or even after.
 // It is important to note that Output (default to os.Stdout) should not be used directly (for example with fmt.Print*()) after Start() is called and until Stop() is called.
-// See SetOutput() to change the output writer (call it before anything else).
 // See ByPass() to get a writer that will bypass the live progress and write directly to the output without disrupting it.
 func Start() (err error) {
 	liveterm.RefreshInterval = RefreshInterval
