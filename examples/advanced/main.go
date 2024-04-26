@@ -52,7 +52,7 @@ func main() {
 	style = liveprogress.BaseStyle().Foreground(extendedAINSIPurpleColor)
 	hashRandom(size8G,
 		liveprogress.WithWidth(barWidth),
-		liveprogress.WithUnicodeLightStyle(),
+		liveprogress.WithLineStyle(),
 		liveprogress.WithBarStyle(style),
 		liveprogress.WithAppendPercent(style),
 	)

@@ -65,14 +65,14 @@ func WithPlainStyle() BarOption {
 	})
 }
 
-// WithUnicodeArrowsStyle sets the style of the progress bar to an Unicode arrows style.
-func WithUnicodeLightStyle() BarOption {
+// WithLineStyle sets the style of the progress bar to an box drawing lines style.
+func WithLineStyle() BarOption {
 	return WithStyle(BarStyle{
-		LeftEnd:  '◂',
+		LeftEnd:  '├',
 		Fill:     '─',
 		Head:     '╴',
 		Empty:    ' ',
-		RightEnd: '▸',
+		RightEnd: '┤',
 	})
 }
 
@@ -82,7 +82,7 @@ func BaseStyle() termenv.Style {
 	return liveterm.GetTermProfil().String()
 }
 
-// WithBarColor sets the color of the progress bar. See advanced example for style usage.
+// WithBarStyle sets the style of the progress bar. See advanced example for style usage.
 func WithBarStyle(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.barStyle = style
