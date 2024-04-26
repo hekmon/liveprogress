@@ -9,17 +9,16 @@ import (
 )
 
 func main() {
-	if err := liveprogress.Start(); err != nil {
+	if err := liveprogress.Start(liveprogress.DefaultRefreshInterval); err != nil {
 		panic(err)
 	}
 	bar := liveprogress.AddBar(
-		liveprogress.WithPlainStyle(),
-		liveprogress.WithWidth(78),
+		liveprogress.WithWidth(76),
 		liveprogress.WithPrependPercent(""),
 	)
 	// By default a bar total is set to 100
 	// As we omit it in AddBar()
-	for i := 0; i < 100; i++ {
+	for i := 0; i < liveprogress.DefaultTotal; i++ {
 		// Wait a random time
 		time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond)
 		// Increment the bar

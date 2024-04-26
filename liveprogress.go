@@ -11,18 +11,33 @@ import (
 	"github.com/muesli/termenv"
 )
 
-var (
-	// Config
-	Output          = os.Stdout
-	RefreshInterval = 100 * time.Millisecond
+const (
+	// DefaultRefreshInterval is the recommended value for Start().
+	// Setting it lower might flicker the terminal and increase CPU usage.
+	DefaultRefreshInterval = 100 * time.Millisecond
 )
 
 var (
+	output      io.Writer
 	termOutput  *termenv.Output
 	items       []fmt.Stringer
 	mainItem    fmt.Stringer
 	itemsAccess sync.Mutex
 )
+
+func init() {
+	// Even if liveprogress is not started, bar options will need termOutput to be set
+	// so we set it to os.Stdout by default, user can change it with SetOutput()
+	SetOutput(os.Stdout)
+}
+
+// SetOutput sets the output writer for the live progress.
+// Default is os.Stdout and if you wish to change it (for example by os.Stderr),
+// you should do it before creating any bar, custom line or starting the live progress.
+func SetOutput(out io.Writer) {
+	output = out
+	termOutput = termenv.NewOutput(output)
+}
 
 // AddBar adds a new progress bar to the live progress. This does not start the live progress itself, see Start().
 func AddBar(opts ...BarOption) (pb *Bar) {
@@ -79,17 +94,18 @@ func SetMainLineAsBar(opts ...BarOption) (pb *Bar) {
 	return
 }
 
-// Start starts the live progress. It will render every bar and custom line added.
+// Start starts the live progress. It will render every bars and custom lines added previously or even after.
 // It is important to note that Output (default to os.Stdout) should not be used directly (for example with fmt.Print*()) after Start() is called and until Stop() is called.
+// See SetOutput() to change the output writer (call it before anything else).
 // See ByPass() to get a writer that will bypass the live progress and write directly to the output without disrupting it.
-func Start() (err error) {
-	liveterm.RefreshInterval = RefreshInterval
-	liveterm.Output = Output
-	liveterm.SetMultiLinesUpdateFx(updater)
-	if err = liveterm.Start(); err != nil {
-		termOutput = termenv.NewOutput(os.Stdout)
+func Start(refreshInterval time.Duration) (err error) {
+	if refreshInterval <= time.Millisecond {
+		refreshInterval = DefaultRefreshInterval
 	}
-	return
+	liveterm.RefreshInterval = refreshInterval
+	liveterm.Output = output
+	liveterm.SetMultiLinesUpdateFx(updater)
+	return liveterm.Start()
 }
 
 // Stop stops the live progress and remove. Set clear to true to clear the liveprogress output.

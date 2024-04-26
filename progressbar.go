@@ -13,8 +13,8 @@ import (
 )
 
 const (
+	DefaultTotal         = 100 // DefaultTotal is the default total value of a progress bar.
 	minimumProgressWidth = 8
-	defaultTotal         = 100
 )
 
 // BarOption is a function that can be used to configure a progress bar.
@@ -236,7 +236,7 @@ func newBar(opts ...BarOption) (b *Bar) {
 		style:      style,
 		styleWidth: style.width(),
 		createdAt:  time.Now(),
-		total:      defaultTotal,
+		total:      DefaultTotal,
 	}
 	for _, opt := range opts {
 		opt(b)
