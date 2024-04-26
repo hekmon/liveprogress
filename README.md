@@ -7,6 +7,7 @@ In addition of the features of [liveterm](https://github.com/hekmon/liveterm/v2)
 * Automatic bar length if its `width` is 0
 * Custom (dynamic) lines that can be anything (not necessarly a progress bar)
 * Main line concept: a bar or a custom line that will always be printed last (usefull for global progress when others lines indicate specific progress)
+* Ability to style part of the bar and decorators using [termenv](https://github.com/muesli/termenv) styles
 
 ## Examples
 
@@ -19,8 +20,8 @@ if err := liveprogress.Start(); err != nil {
 	panic(err)
 }
 bar := liveprogress.AddBar(
-	liveprogress.WithWidth(76), // remove for automatic size
-	liveprogress.WithPrependPercent(""), // "" for no color
+	liveprogress.WithWidth(75), // remove for automatic size
+	liveprogress.WithPrependPercent(liveprogress.BaseStyle()),
 )
 // By default a bar total is set to 100
 for i := 0; i < liveprogress.DefaultTotal; i++ {
@@ -29,7 +30,9 @@ for i := 0; i < liveprogress.DefaultTotal; i++ {
 	// Increment the bar
 	bar.CurrentIncrement()
 }
-liveprogress.Stop(true)
+if err := liveprogress.Stop(true); err != nil {
+	panic(err)
+}
 fmt.Println("By setting the Stop() bool parameter to true, the progress bar is cleared at stop.")
 ```
 
