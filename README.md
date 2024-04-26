@@ -7,7 +7,7 @@ In addition of the features of [liveterm](https://github.com/hekmon/liveterm/v2)
 * Automatic bar length if its `width` is 0
 * Custom (dynamic) lines that can be anything (not necessarly a progress bar)
 * Main line concept: a bar or a custom line that will always be printed last (usefull for global progress when others lines indicate specific progress)
-* Ability to style part of the bar and decorators using [termenv](https://github.com/muesli/termenv) styles
+* Ability to style the bar and decorators using [termenv](https://github.com/muesli/termenv) styles
 
 ## Examples
 
