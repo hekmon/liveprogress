@@ -61,7 +61,7 @@ func WithPlainStyle() BarOption {
 		pb.style = BarStyle{
 			LeftEnd:  0,
 			Fill:     '█',
-			Head:     '█',
+			Head:     '▌',
 			Empty:    '░',
 			RightEnd: 0,
 		}
