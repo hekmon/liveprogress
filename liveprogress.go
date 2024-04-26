@@ -145,7 +145,7 @@ func (cl *CustomLine) String() string {
 	return cl.generator()
 }
 
-// AddCustomLine adds a custom line to the live progress.
+// AddCustomLine adds a custom line to the live progress. Only call it after Start() has been called.
 func AddCustomLine(generator func() string) (cl *CustomLine) {
 	if generator == nil {
 		return

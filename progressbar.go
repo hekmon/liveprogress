@@ -109,8 +109,7 @@ func WithPrependDecorator(decorators ...DecoratorFunc) BarOption {
 }
 
 // WithPrependPercent adds the percentage of the progress bar to the beginning of the bar.
-// Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
-// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
+// Use BaseStyle() if you do not want any particular style.
 func WithPrependPercent(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
@@ -120,8 +119,7 @@ func WithPrependPercent(style termenv.Style) BarOption {
 }
 
 // WithAppendPercent adds the percentage of the progress bar to the end of the bar.
-// Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
-// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
+// Use BaseStyle() if you do not want any particular style.
 func WithAppendPercent(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
@@ -131,8 +129,7 @@ func WithAppendPercent(style termenv.Style) BarOption {
 }
 
 // WithPrependTimeElapsed adds the time elapsed since the creation of the progress bar to the beginning of the bar.
-// Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
-// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
+// Use BaseStyle() if you do not want any particular style.
 func WithPrependTimeElapsed(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
@@ -142,8 +139,7 @@ func WithPrependTimeElapsed(style termenv.Style) BarOption {
 }
 
 // WithAppendTimeElapsed adds the time elapsed since the creation of the progress bar to the end of the bar.
-// Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
-// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
+// Use BaseStyle() if you do not want any particular style.
 func WithAppendTimeElapsed(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
@@ -153,8 +149,7 @@ func WithAppendTimeElapsed(style termenv.Style) BarOption {
 }
 
 // WithPrependTimeRemaining adds the time remaining until the end of the progress bar to the beginning of the bar.
-// Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
-// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
+// Use BaseStyle() if you do not want any particular style.
 func WithPrependTimeRemaining(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
@@ -165,8 +160,7 @@ func WithPrependTimeRemaining(style termenv.Style) BarOption {
 }
 
 // WithAppendTimeRemaining adds the time remaining until the end of the progress bar to the end of the bar.
-// Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
-// See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
+// Use BaseStyle() if you do not want any particular style.
 func WithAppendTimeRemaining(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
