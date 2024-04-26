@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hekmon/liveprogress"
+	"github.com/hekmon/liveprogress/v2"
 	"github.com/muesli/termenv"
 )
 

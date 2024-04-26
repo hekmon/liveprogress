@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/hekmon/liveprogress"
+	"github.com/hekmon/liveprogress/v2"
 )
 
 func main() {

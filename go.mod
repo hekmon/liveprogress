@@ -1,4 +1,4 @@
-module github.com/hekmon/liveprogress
+module github.com/hekmon/liveprogress/v2
 
 go 1.18
 

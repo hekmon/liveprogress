@@ -47,5 +47,5 @@ See full source code [here](examples/advanced/main.go).
 ## Installation
 
 ```bash
-go get -v github.com/hekmon/liveprogress
+go get -v github.com/hekmon/liveprogress/v2
 ```
