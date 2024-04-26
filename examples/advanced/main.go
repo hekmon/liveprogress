@@ -108,8 +108,8 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 		if err = hasher.ComputeHash(bar.CurrentAdd); err != nil {
 			panic(err)
 		}
-		fmt.Fprintf(liveprogress.Bypass(), "%d bytes SHA256 done: 0x%X\n", size, hasher.GetCurrentHash())
 		liveprogress.RemoveBar(bar)
+		fmt.Fprintf(liveprogress.Bypass(), "%d bytes SHA256 done: 0x%X\n", size, hasher.GetCurrentHash())
 	}()
 }
 
