@@ -39,46 +39,41 @@ func WithWidth(width int) BarOption {
 func WithStyle(style BarStyle) BarOption {
 	return func(pb *Bar) {
 		pb.style = style
+		pb.styleWidth = style.width()
 	}
 }
 
 // WithASCIIStyle sets the style of the progress bar to an ASCII style.
 func WithASCIIStyle() BarOption {
-	return func(pb *Bar) {
-		pb.style = BarStyle{
-			LeftEnd:  '[',
-			Fill:     '=',
-			Head:     '>',
-			Empty:    '-',
-			RightEnd: ']',
-		}
-	}
+	return WithStyle(BarStyle{
+		LeftEnd:  '[',
+		Fill:     '=',
+		Head:     '>',
+		Empty:    '-',
+		RightEnd: ']',
+	})
 }
 
 // WithPlainStyle sets the style of the progress bar to a plain style.
 func WithPlainStyle() BarOption {
-	return func(pb *Bar) {
-		pb.style = BarStyle{
-			LeftEnd:  0,
-			Fill:     '█',
-			Head:     '▌',
-			Empty:    '░',
-			RightEnd: 0,
-		}
-	}
+	return WithStyle(BarStyle{
+		LeftEnd:  0,
+		Fill:     '█',
+		Head:     '▌',
+		Empty:    '░',
+		RightEnd: 0,
+	})
 }
 
 // WithUnicodeArrowsStyle sets the style of the progress bar to an Unicode arrows style.
 func WithUnicodeLightStyle() BarOption {
-	return func(pb *Bar) {
-		pb.style = BarStyle{
-			LeftEnd:  '◂',
-			Fill:     '─',
-			Head:     '╴',
-			Empty:    ' ',
-			RightEnd: '▸',
-		}
-	}
+	return WithStyle(BarStyle{
+		LeftEnd:  '◂',
+		Fill:     '─',
+		Head:     '╴',
+		Empty:    ' ',
+		RightEnd: '▸',
+	})
 }
 
 // WithBarColor sets the color of the progress bar.
@@ -225,19 +220,11 @@ type Bar struct {
 }
 
 func newBar(opts ...BarOption) (b *Bar) {
-	style := BarStyle{
-		LeftEnd:  '[',
-		Fill:     '=',
-		Head:     '>',
-		Empty:    '-',
-		RightEnd: ']',
-	}
 	b = &Bar{
-		style:      style,
-		styleWidth: style.width(),
-		createdAt:  time.Now(),
-		total:      DefaultTotal,
+		createdAt: time.Now(),
+		total:     DefaultTotal,
 	}
+	WithASCIIStyle()(b) // default, can be overridden by opts
 	for _, opt := range opts {
 		opt(b)
 	}
