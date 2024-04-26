@@ -17,36 +17,33 @@ const (
 )
 
 // BarOption is a function that can be used to configure a progress bar.
-type BarOption func(*Bar) error
+type BarOption func(*Bar)
 
 // WithTotal sets the total value of the progress bar.
 func WithTotal(total uint64) BarOption {
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.total = total
-		return nil
 	}
 }
 
 // WithWidth sets the width of the progress bar.
 // By default the with is set to 0, this will take the full terminal width (minus decorators).
 func WithWidth(width int) BarOption {
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.width = width
-		return nil
 	}
 }
 
 // WithStyle sets the style of the progress bar.
 func WithStyle(style BarStyle) BarOption {
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.style = style
-		return nil
 	}
 }
 
 // WithASCIIStyle sets the style of the progress bar to an ASCII style.
 func WithASCIIStyle() BarOption {
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.style = BarStyle{
 			LeftEnd:  '[',
 			Fill:     '=',
@@ -54,13 +51,12 @@ func WithASCIIStyle() BarOption {
 			Empty:    '-',
 			RightEnd: ']',
 		}
-		return nil
 	}
 }
 
 // WithPlainStyle sets the style of the progress bar to a plain style.
 func WithPlainStyle() BarOption {
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.style = BarStyle{
 			LeftEnd:  0,
 			Fill:     '█',
@@ -68,13 +64,12 @@ func WithPlainStyle() BarOption {
 			Empty:    '░',
 			RightEnd: 0,
 		}
-		return nil
 	}
 }
 
 // WithUnicodeArrowsStyle sets the style of the progress bar to an Unicode arrows style.
 func WithUnicodeArrowsStyle() BarOption {
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.style = BarStyle{
 			LeftEnd:  '◂',
 			Fill:     '⎯',
@@ -82,7 +77,6 @@ func WithUnicodeArrowsStyle() BarOption {
 			Empty:    ' ',
 			RightEnd: '▸',
 		}
-		return nil
 	}
 }
 
@@ -105,9 +99,8 @@ func WithUnicodeArrowsStyle() BarOption {
 // The terminal's color profile will be automatically detected, and colors outside the gamut
 // of the current palette will be automatically coerced to their closest available value.
 func WithBarColor(color string) BarOption {
-	return func(pb *Bar) error {
-		pb.barStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(color))
-		return nil
+	return func(pb *Bar) {
+		pb.barStyle.Foreground(lipgloss.Color(color))
 	}
 }
 
@@ -116,85 +109,77 @@ type DecoratorFunc func(pb *Bar) string
 
 // WithAppendDecorator adds a decorator function to the end of the progress bar.
 func WithAppendDecorator(decorators ...DecoratorFunc) BarOption {
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, decorators...)
-		return nil
 	}
 }
 
 // WithPrependDecorator adds a decorator function to the beginning of the progress bar.
 func WithPrependDecorator(decorators ...DecoratorFunc) BarOption {
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, decorators...)
-		return nil
 	}
 }
 
 // WithAppendPercent adds the percentage of the progress bar to the end of the bar.
 func WithAppendPercent(color string) BarOption {
 	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
 			return style.Render(fmt.Sprintf("%3d%% ", getPercent(pb)))
 		})
-		return nil
 	}
 }
 
 // WithPrependPercent adds the percentage of the progress bar to the beginning of the bar.
 func WithPrependPercent(color string) BarOption {
 	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
 			return style.Render(fmt.Sprintf("%3d%% ", getPercent(pb)))
 		})
-		return nil
 	}
 }
 
 // WithAppendTimeElapsed adds the time elapsed since the creation of the progress bar to the end of the bar.
 func WithAppendTimeElapsed(color string) BarOption {
 	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
 			return style.Render(fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second)))
 		})
-		return nil
 	}
 }
 
 // WithPrependTimeElapsed adds the time elapsed since the creation of the progress bar to the beginning of the bar.
 func WithPrependTimeElapsed(color string) BarOption {
 	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
 			return style.Render(fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second)))
 		})
-		return nil
 	}
 }
 
 // WithAppendTimeRemaining adds the time remaining until the end of the progress bar to the end of the bar.
 func WithAppendTimeRemaining(color string) BarOption {
 	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
 			progress := pb.Progress()
 			return style.Render(fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second)))
 		})
-		return nil
 	}
 }
 
 // WithPrependTimeRemaining adds the time remaining until the end of the progress bar to the beginning of the bar.
 func WithPrependTimeRemaining(color string) BarOption {
 	style := lipgloss.NewStyle().Foreground(lipgloss.Color(color))
-	return func(pb *Bar) error {
+	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
 			progress := pb.Progress()
 			return style.Render(fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second)))
 		})
-		return nil
 	}
 }
 
