@@ -76,12 +76,18 @@ func WithUnicodeLightStyle() BarOption {
 	})
 }
 
+// BaseStyle returns a base termenv style with its terminal profile correctly set.
+// You can use it to create your own styles with the returned base style. Only call it after Start() has been called.
+func BaseStyle() termenv.Style {
+	return liveterm.GetTermProfil().String()
+}
+
 // WithBarColor sets the color of the progress bar.
 // Valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
-func WithBarColor(color string) BarOption {
+func WithBarStyle(style termenv.Style) BarOption {
 	return func(pb *Bar) {
-		pb.barColor = liveterm.GetTermProfil().Color(color)
+		pb.barStyle = style
 	}
 }
 
@@ -105,11 +111,10 @@ func WithPrependDecorator(decorators ...DecoratorFunc) BarOption {
 // WithPrependPercent adds the percentage of the progress bar to the beginning of the bar.
 // Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
-func WithPrependPercent(color string) BarOption {
-	foregroundColor := liveterm.GetTermProfil().Color(color)
+func WithPrependPercent(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
-			return liveterm.GetTermProfil().String(fmt.Sprintf("%3d%% ", getPercent(pb))).Foreground(foregroundColor).String()
+			return style.Styled(fmt.Sprintf("%3d%% ", getPercent(pb)))
 		})
 	}
 }
@@ -117,11 +122,10 @@ func WithPrependPercent(color string) BarOption {
 // WithAppendPercent adds the percentage of the progress bar to the end of the bar.
 // Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
-func WithAppendPercent(color string) BarOption {
-	foregroundColor := liveterm.GetTermProfil().Color(color)
+func WithAppendPercent(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
-			return liveterm.GetTermProfil().String(fmt.Sprintf(" %3d%%", getPercent(pb))).Foreground(foregroundColor).String()
+			return style.Styled(fmt.Sprintf(" %3d%%", getPercent(pb)))
 		})
 	}
 }
@@ -129,11 +133,10 @@ func WithAppendPercent(color string) BarOption {
 // WithPrependTimeElapsed adds the time elapsed since the creation of the progress bar to the beginning of the bar.
 // Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
-func WithPrependTimeElapsed(color string) BarOption {
-	foregroundColor := liveterm.GetTermProfil().Color(color)
+func WithPrependTimeElapsed(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
-			return liveterm.GetTermProfil().String(fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second))).Foreground(foregroundColor).String()
+			return style.Styled(fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second)))
 		})
 	}
 }
@@ -141,11 +144,10 @@ func WithPrependTimeElapsed(color string) BarOption {
 // WithAppendTimeElapsed adds the time elapsed since the creation of the progress bar to the end of the bar.
 // Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
-func WithAppendTimeElapsed(color string) BarOption {
-	foregroundColor := liveterm.GetTermProfil().Color(color)
+func WithAppendTimeElapsed(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
-			return liveterm.GetTermProfil().String(fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second))).Foreground(foregroundColor).String()
+			return style.Styled(fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second)))
 		})
 	}
 }
@@ -153,12 +155,11 @@ func WithAppendTimeElapsed(color string) BarOption {
 // WithPrependTimeRemaining adds the time remaining until the end of the progress bar to the beginning of the bar.
 // Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
-func WithPrependTimeRemaining(color string) BarOption {
-	foregroundColor := liveterm.GetTermProfil().Color(color)
+func WithPrependTimeRemaining(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
 			progress := pb.Progress()
-			return liveterm.GetTermProfil().String(fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))).Foreground(foregroundColor).String()
+			return style.Styled(fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second)))
 		})
 	}
 }
@@ -166,12 +167,11 @@ func WithPrependTimeRemaining(color string) BarOption {
 // WithAppendTimeRemaining adds the time remaining until the end of the progress bar to the end of the bar.
 // Color valid inputs are hex colors, as well as ANSI color codes (0-15, 16-255). Empty string is a valid value for no coloration.
 // See TermEnv chart for help: https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
-func WithAppendTimeRemaining(color string) BarOption {
-	foregroundColor := liveterm.GetTermProfil().Color(color)
+func WithAppendTimeRemaining(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
 			progress := pb.Progress()
-			return liveterm.GetTermProfil().String(fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second))).Foreground(foregroundColor).String()
+			return style.Styled(fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second)))
 		})
 	}
 }
@@ -209,7 +209,7 @@ type Bar struct {
 	width      int
 	style      BarStyle
 	styleWidth barStyleWidth
-	barColor   termenv.Color
+	barStyle   termenv.Style
 	// progress
 	current atomic.Uint64
 	total   uint64
@@ -221,8 +221,9 @@ type Bar struct {
 
 func newBar(opts ...BarOption) (b *Bar) {
 	b = &Bar{
-		createdAt: time.Now(),
+		barStyle:  BaseStyle(),
 		total:     DefaultTotal,
+		createdAt: time.Now(),
 	}
 	WithASCIIStyle()(b) // default, can be overridden by opts
 	for _, opt := range opts {
@@ -331,11 +332,7 @@ func (pb *Bar) String() string {
 	for _, line := range pfx {
 		assembler.WriteString(line)
 	}
-	if pb.barColor != nil {
-		assembler.WriteString(liveterm.GetTermProfil().String(progress.String()).Foreground(pb.barColor).String())
-	} else {
-		assembler.WriteString(progress.String())
-	}
+	assembler.WriteString(pb.barStyle.Styled(progress.String()))
 	for _, line := range afx {
 		assembler.WriteString(line)
 	}

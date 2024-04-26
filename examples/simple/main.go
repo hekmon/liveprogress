@@ -13,8 +13,8 @@ func main() {
 		panic(err)
 	}
 	bar := liveprogress.AddBar(
-		liveprogress.WithWidth(76),          // remove for automatic size
-		liveprogress.WithPrependPercent(""), // "" for no color
+		liveprogress.WithWidth(75), // remove for automatic size
+		liveprogress.WithPrependPercent(liveprogress.BaseStyle()),
 	)
 	// By default a bar total is set to 100
 	for i := 0; i < liveprogress.DefaultTotal; i++ {

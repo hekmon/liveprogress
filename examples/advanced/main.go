@@ -39,23 +39,30 @@ func main() {
 	if err := liveprogress.Start(); err != nil {
 		panic(err)
 	}
+	termProfil := liveprogress.GetTermProfil() // always call it after start
+	// File 1
+	style := liveprogress.BaseStyle().Foreground(termProfil.Color(basicANSIGreenColor))
 	hashRandom(size5G,
 		liveprogress.WithWidth(barWidth),
 		liveprogress.WithASCIIStyle(), // default, not really needed
-		liveprogress.WithBarColor(basicANSIGreenColor),
-		liveprogress.WithAppendPercent(basicANSIGreenColor),
+		liveprogress.WithBarStyle(style),
+		liveprogress.WithAppendPercent(style),
 	)
+	// File 2
+	style = liveprogress.BaseStyle().Foreground(termProfil.Color(extendedAINSIPurpleColor))
 	hashRandom(size8G,
 		liveprogress.WithWidth(barWidth),
 		liveprogress.WithUnicodeLightStyle(),
-		liveprogress.WithBarColor(extendedAINSIPurpleColor),
-		liveprogress.WithAppendPercent(extendedAINSIPurpleColor),
+		liveprogress.WithBarStyle(style),
+		liveprogress.WithAppendPercent(style),
 	)
+	// File 3
+	style = liveprogress.BaseStyle().Foreground(termProfil.Color(rgbPinkColor))
 	hashRandom(size3G,
 		liveprogress.WithWidth(barWidth),
 		liveprogress.WithPlainStyle(),
-		liveprogress.WithBarColor(rgbPinkColor),
-		liveprogress.WithAppendPercent(rgbPinkColor),
+		liveprogress.WithBarStyle(style),
+		liveprogress.WithAppendPercent(style),
 	)
 	// Wait
 	workers.Wait()
@@ -83,7 +90,7 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
 			return "  Remaining:"
 		}),
-		liveprogress.WithAppendTimeRemaining(""),
+		liveprogress.WithAppendTimeRemaining(liveprogress.BaseStyle()),
 	}
 
 	// Create the hasher progress bar
