@@ -10,20 +10,16 @@ import (
 	"time"
 
 	"github.com/hekmon/liveprogress/v2"
-	"github.com/muesli/termenv"
+	"github.com/hekmon/liveprogress/v2/colors"
 )
 
-var (
+const (
 	// sizes
 	size3G = 3 * 1024 * 1024 * 1024
 	size5G = 5 * 1024 * 1024 * 1024
 	size8G = 8 * 1024 * 1024 * 1024
 	// bar width for example
 	barWidth = 40
-	// colors, see https://github.com/muesli/termenv?tab=readme-ov-file#color-chart
-	basicANSIGreenColor      termenv.ANSIColor    = termenv.ANSIGreen
-	extendedAINSIPurpleColor termenv.ANSI256Color = 93
-	rgbPinkColor             termenv.RGBColor     = "#ff5faf"
 )
 
 var (
@@ -39,30 +35,33 @@ func main() {
 	if err := liveprogress.Start(); err != nil {
 		panic(err)
 	}
+	// Main line, let's spin while hashing
 	liveprogress.SetMainLineAsCustomLine(spinner.Next)
+	// Create some colored styles
+	colors.Generate() // Call it after Start() if you have changed the default Output value, otherwise you can omit it
+	basicANSIGreenColor := colors.ANSIBasicGreen
+	extendedAINSIPurpleColor := colors.ANSIExtended93
+	rgbPinkColor := colors.RGB("#ff5faf")
 	// File 1
-	style := liveprogress.BaseStyle().Foreground(rgbPinkColor)
 	hashRandom(size5G,
 		liveprogress.WithWidth(barWidth),
 		liveprogress.WithPlainRunes(),
-		liveprogress.WithBarStyle(style),
-		liveprogress.WithAppendPercent(style),
+		liveprogress.WithBarStyle(rgbPinkColor),
+		liveprogress.WithAppendPercent(rgbPinkColor.Bold()),
 	)
 	// File 2
-	style = liveprogress.BaseStyle().Foreground(extendedAINSIPurpleColor)
 	hashRandom(size8G,
 		liveprogress.WithWidth(barWidth),
 		liveprogress.WithLineFillRunes(),
-		liveprogress.WithBarStyle(style),
-		liveprogress.WithAppendPercent(style),
+		liveprogress.WithBarStyle(extendedAINSIPurpleColor),
+		liveprogress.WithAppendPercent(extendedAINSIPurpleColor.Bold()),
 	)
 	// File 3
-	style = liveprogress.BaseStyle().Foreground(basicANSIGreenColor)
 	hashRandom(size3G,
 		liveprogress.WithWidth(barWidth),
 		liveprogress.WithLineBracketsRunes(),
-		liveprogress.WithBarStyle(style),
-		liveprogress.WithAppendPercent(style),
+		liveprogress.WithBarStyle(basicANSIGreenColor),
+		liveprogress.WithAppendPercent(basicANSIGreenColor.Bold()),
 	)
 	// Wait
 	workers.Wait()
@@ -80,7 +79,7 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 	// Create the hasher
 	hasher := New(fd, size)
 	// default options
-	bold := liveprogress.BaseStyle().Bold()
+	bold := colors.NoColor.Bold()
 	defaultOpts := []liveprogress.BarOption{
 		liveprogress.WithTotal(uint64(size)),
 		liveprogress.WithPrependDecorator(func(bar *liveprogress.Bar) string {
@@ -92,7 +91,7 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
 			return "  Remaining:"
 		}),
-		liveprogress.WithAppendTimeRemaining(liveprogress.BaseStyle()),
+		liveprogress.WithAppendTimeRemaining(colors.NoColor),
 	}
 
 	// Create the hasher progress bar

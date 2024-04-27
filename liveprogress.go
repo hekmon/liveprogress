@@ -99,14 +99,13 @@ func Start() (err error) {
 	liveterm.RefreshInterval = RefreshInterval
 	liveterm.Output = Output
 	liveterm.SetMultiLinesUpdateFx(updater)
-	err = liveterm.Start()
-	return
+	return liveterm.Start()
 }
 
 // Stop stops the live progress and remove all registered bars and custom lines from its internal state.
 // Set clear to true to clear the liveprogress output. After this call, Output can be used directly again (no need to use ByPass() anymore).
 func Stop(clear bool) (err error) {
-	// if clear is false, liveterm will call updater one last time (and thus locking the mutex)
+	// if clear is false, liveterm will call updater one last time
 	err = liveterm.Stop(clear)
 	RemoveAll()
 	return
