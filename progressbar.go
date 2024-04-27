@@ -28,7 +28,7 @@ func WithTotal(total uint64) BarOption {
 }
 
 // WithWidth sets the width of the progress bar.
-// By default the with is set to 0, this will take the full terminal width (minus decorators).
+// By default the width is set to 0: the bar will take the full terminal width (minus decorators).
 func WithWidth(width int) BarOption {
 	return func(pb *Bar) {
 		pb.barWidth = width
@@ -46,7 +46,7 @@ func WithRunes(runes BarRunes) BarOption {
 	}
 }
 
-// WithASCIIStyle sets the style of the progress bar to an ASCII style. This is applied by default.
+// WithASCIIRunes sets the style of the progress bar to an ASCII style. This is applied by default.
 func WithASCIIRunes() BarOption {
 	return WithRunes(BarRunes{
 		LeftEnd:  '[',
@@ -57,7 +57,7 @@ func WithASCIIRunes() BarOption {
 	})
 }
 
-// WithPlainStyle sets the style of the progress bar to a plain style.
+// WithPlainRunes sets the style of the progress bar to a plain style.
 func WithPlainRunes() BarOption {
 	return WithRunes(BarRunes{
 		LeftEnd:  0,
@@ -68,7 +68,7 @@ func WithPlainRunes() BarOption {
 	})
 }
 
-// WithLineStyle sets the style of the progress bar to an box drawing lines style.
+// WithLineFillRunes sets the style of the progress bar to an box drawing lines style.
 func WithLineFillRunes() BarOption {
 	return WithRunes(BarRunes{
 		LeftEnd:  0,
@@ -79,7 +79,7 @@ func WithLineFillRunes() BarOption {
 	})
 }
 
-// WithLineStyle sets the style of the progress bar to an box drawing lines style.
+// WithLineBracketsRunes sets the style of the progress bar to an box drawing lines style.
 func WithLineBracketsRunes() BarOption {
 	return WithRunes(BarRunes{
 		LeftEnd:  '┣',
