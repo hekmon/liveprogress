@@ -10,7 +10,7 @@ import (
 */
 
 func init() {
-	// oportunistic init (default liveprogress.Output value)
+	// oportunistic init (default liveterm.Output value, eg os.Stdout)
 	Generate()
 }
 

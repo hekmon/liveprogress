@@ -37,31 +37,26 @@ func main() {
 	}
 	// Main line, let's spin while hashing
 	liveprogress.SetMainLineAsCustomLine(spinner.Next)
-	// Create some colored styles
+	// Colors, colors everywhere
 	colors.Generate() // Call it after Start() if you have changed the default Output value, otherwise you can omit it
-	basicANSIGreenColor := colors.ANSIBasicGreen
-	extendedAINSIPurpleColor := colors.ANSIExtended93
-	rgbPinkColor := colors.RGB("#ff5faf")
 	// File 1
+	rgbPinkColor := colors.RGB("#ff5faf")
 	hashRandom(size5G,
-		liveprogress.WithWidth(barWidth),
 		liveprogress.WithPlainRunes(),
 		liveprogress.WithBarStyle(rgbPinkColor),
 		liveprogress.WithAppendPercent(rgbPinkColor.Bold()),
 	)
 	// File 2
 	hashRandom(size8G,
-		liveprogress.WithWidth(barWidth),
 		liveprogress.WithLineFillRunes(),
-		liveprogress.WithBarStyle(extendedAINSIPurpleColor),
-		liveprogress.WithAppendPercent(extendedAINSIPurpleColor.Bold()),
+		liveprogress.WithBarStyle(colors.ANSIExtended93),
+		liveprogress.WithAppendPercent(colors.ANSIExtended93.Bold()),
 	)
 	// File 3
 	hashRandom(size3G,
-		liveprogress.WithWidth(barWidth),
 		liveprogress.WithLineBracketsRunes(),
-		liveprogress.WithBarStyle(basicANSIGreenColor),
-		liveprogress.WithAppendPercent(basicANSIGreenColor.Bold()),
+		liveprogress.WithBarStyle(colors.ANSIBasicGreen),
+		liveprogress.WithAppendPercent(colors.ANSIBasicGreen.Bold()),
 	)
 	// Wait
 	workers.Wait()
@@ -79,22 +74,25 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 	// Create the hasher
 	hasher := New(fd, size)
 	// default options
-	bold := colors.NoColor.Bold()
+	italic := colors.NoColor.Italic()
+	faint := colors.NoColor.Faint()
 	defaultOpts := []liveprogress.BarOption{
 		liveprogress.WithTotal(uint64(size)),
+		liveprogress.WithWidth(barWidth),
 		liveprogress.WithPrependDecorator(func(bar *liveprogress.Bar) string {
-			return fmt.Sprintf("Hashing %d bytes <> ", size)
+			return fmt.Sprintf("Hashing %d bytes >>>  ", size)
 		}),
 		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
-			return fmt.Sprintf("  %d bytes read, current SHA256: %s",
-				bar.Current(), bold.Styled(fmt.Sprintf("0x%X", hasher.GetCurrentHash())))
+			return fmt.Sprintf("  %s bytes read, SHA256: %s",
+				italic.Styled(fmt.Sprintf("%d", bar.Current())),
+				faint.Styled(fmt.Sprintf("0x%X", hasher.GetCurrentHash())),
+			)
 		}),
 		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
 			return "  Remaining:"
 		}),
 		liveprogress.WithAppendTimeRemaining(colors.NoColor),
 	}
-
 	// Create the hasher progress bar
 	bar := liveprogress.AddBar(append(opts, defaultOpts...)...)
 	if bar == nil {
@@ -192,7 +190,10 @@ type hasherReporter struct {
 
 func (hc *hasherReporter) Write(p []byte) (n int, err error) {
 	hc.access.Lock()
-	n, err = hc.dest.Write(p)
+	if n, err = hc.dest.Write(p); err != nil {
+		hc.access.Unlock()
+		return
+	}
 	hc.writeReport(uint64(n))
 	hc.access.Unlock()
 	return
