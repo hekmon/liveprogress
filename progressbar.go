@@ -365,12 +365,12 @@ func (pb *Bar) String() string {
 	// Assemble
 	var assembler strings.Builder
 	assembler.Grow(pfxLen + pb.barStyleLen + progress.Len() + afxLen)
-	for _, line := range pfx {
-		assembler.WriteString(line)
+	for i := 0; i < len(pfx); i++ {
+		assembler.WriteString(pfx[i])
 	}
 	assembler.WriteString(pb.barStyle.Styled(progress.String()))
-	for _, line := range afx {
-		assembler.WriteString(line)
+	for i := 0; i < len(afx); i++ {
+		assembler.WriteString(afx[i])
 	}
 	return assembler.String()
 }
