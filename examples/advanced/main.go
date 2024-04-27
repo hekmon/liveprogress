@@ -83,10 +83,11 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 	defaultOpts := []liveprogress.BarOption{
 		liveprogress.WithTotal(uint64(size)),
 		liveprogress.WithPrependDecorator(func(bar *liveprogress.Bar) string {
-			return fmt.Sprintf("Hashing %d bytes ", size)
+			return fmt.Sprintf("Hashing %d bytes <> ", size)
 		}),
 		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
-			return fmt.Sprintf("  SHA256: %s", bold.Styled(fmt.Sprintf("0x%X", hasher.GetCurrentHash())))
+			return fmt.Sprintf("  %d bytes read, current SHA256: %s",
+				bar.Current(), bold.Styled(fmt.Sprintf("0x%X", hasher.GetCurrentHash())))
 		}),
 		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
 			return "  Remaining:"
@@ -176,6 +177,10 @@ func (rc *readerCounter) Read(p []byte) (n int, err error) {
 	}
 	n, err = rc.source.Read(p)
 	rc.read += n
+	if rc.read > rc.maxRead {
+		n -= rc.read - rc.maxRead
+		rc.read = rc.maxRead
+	}
 	return
 }
 
