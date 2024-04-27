@@ -92,6 +92,7 @@ func WithLineBracketsRunes() BarOption {
 func WithBarStyle(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.barStyle = style
+		pb.barStyleLen = len(style.String())
 	}
 }
 
@@ -228,6 +229,7 @@ type Bar struct {
 	barRunesMaxLen int
 	barRunesWidth  barRunesWidth
 	barStyle       termenv.Style
+	barStyleLen    int
 	// progress values
 	current atomic.Uint64
 	total   uint64
@@ -238,14 +240,16 @@ type Bar struct {
 }
 
 func newBar(opts ...BarOption) (b *Bar) {
+	// Init base
 	b = &Bar{
-		barStyle:     BaseStyle(),
 		total:        DefaultTotal,
 		createdAt:    time.Now(),
 		prependFuncs: make([]DecoratorFunc, 0, len(opts)),
 		appendFuncs:  make([]DecoratorFunc, 0, len(opts)),
 	}
-	WithASCIIRunes()(b) // default, can be overridden by opts
+	WithASCIIRunes()(b)          // default, can be overridden by opts
+	WithBarStyle(BaseStyle())(b) // default, can be overridden by opts
+	// Apply user options
 	for _, opt := range opts {
 		opt(b)
 	}
@@ -348,7 +352,7 @@ func (pb *Bar) String() string {
 	progress.WriteRune(pb.barRunes.RightEnd)
 	// Assemble
 	var assembler strings.Builder
-	assembler.Grow(pfxLen + progress.Len() + afxLen)
+	assembler.Grow(pfxLen + pb.barStyleLen + progress.Len() + afxLen)
 	for _, line := range pfx {
 		assembler.WriteString(line)
 	}
