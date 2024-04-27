@@ -283,6 +283,11 @@ func (pb *Bar) CurrentIncrement() {
 	pb.CurrentAdd(1)
 }
 
+// GetCreationTime returns the time at which the progress bar was created.
+func (pb *Bar) GetCreationTime() time.Time {
+	return pb.createdAt
+}
+
 // Progress returns the progress of the bar as a float64 between 0 and 1.
 func (pb *Bar) Progress() float64 {
 	return float64(pb.current.Load()) / float64(pb.total)
