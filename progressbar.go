@@ -177,7 +177,7 @@ func WithAppendTimeRemaining(style termenv.Style) BarOption {
 	}
 }
 
-// BarRunes is the style of a progress bar.
+// BarRunes is the composition of a progress bar.
 type BarRunes struct {
 	LeftEnd  rune
 	Fill     rune
