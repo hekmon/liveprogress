@@ -38,9 +38,11 @@ func WithWidth(width int) BarOption {
 // WithRunes sets the runes used by the progress bar.
 func WithRunes(runes BarRunes) BarOption {
 	return func(pb *Bar) {
-		pb.barRunes = runes
-		pb.barRunesMaxLen = runes.maxLen()
-		pb.barRunesWidth = runes.width()
+		if runes.Valid() {
+			pb.barRunes = runes
+			pb.barRunesMaxLen = runes.maxLen()
+			pb.barRunesWidth = runes.width()
+		}
 	}
 }
 
@@ -182,6 +184,11 @@ type BarRunes struct {
 	Head     rune
 	Empty    rune
 	RightEnd rune
+}
+
+// Valid returns true if all the mandatory runes are set (Fill, Head and Empty).
+func (b BarRunes) Valid() bool {
+	return b.Fill != 0 && b.Head != 0 && b.Empty != 0
 }
 
 func (b BarRunes) width() barRunesWidth {
