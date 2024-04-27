@@ -12,11 +12,9 @@ import (
 )
 
 var (
-	// RefreshInterval is the value Start() will use to refresh the live progress.
-	// Setting it lower might flicker the terminal and increase CPU usage.
-	RefreshInterval = 100 * time.Millisecond
-	// Output is the writer the live progress will write to.
-	Output = os.Stdout
+	// Config values (used by Start())
+	RefreshInterval = 100 * time.Millisecond // RefreshInterval is the time between each refresh of the terminal. Recommended value, setting it lower might flicker the terminal and increase CPU usage.
+	Output          = os.Stdout              // Output is the writer the live progress will write to.
 )
 
 var (
@@ -38,14 +36,14 @@ func AddBar(opts ...BarOption) (pb *Bar) {
 }
 
 // BaseStyle returns a base termenv style with its terminal profile correctly set.
-// You can use it to create your own styles with the returned base style.
+// You can use it to create your own styles by modifying the returned style and use it in decorators.
 // You should call this function after Start() if you have changed default Output value.
 func BaseStyle() termenv.Style {
 	return liveterm.GetTermProfile().String()
 }
 
-// GetTermProfile returns the termenv profile used by liveprogress.
-// It can be used to create styles and colors that will be compatible with the terminal.
+// GetTermProfile returns the termenv profile used by liveprogress (actually by liveterm).
+// It can be used to create styles and colors that will be compatible with the terminal. See BaseStyle() for a more high level helper.
 // You should call this function after Start() if you have changed default Output value.
 func GetTermProfile() termenv.Profile {
 	return liveterm.GetTermProfile()
@@ -60,7 +58,7 @@ func RemoveAll() {
 }
 
 // RemoveBar removes a bar from the live progress.
-// This is needed only if you want to remove a bar while leaving the live progress running, otherwise use Stop(true).
+// This is needed only if you want to remove a bar while leaving liveprogress running, otherwise use Stop(true).
 func RemoveBar(pb *Bar) {
 	if pb == nil {
 		return
@@ -94,9 +92,9 @@ func SetMainLineAsBar(opts ...BarOption) (pb *Bar) {
 	return
 }
 
-// Start starts the live progress. It will render every bars and custom lines added previously or even after.
+// Start starts the live progress. It will render every bars and custom lines added after.
 // It is important to note that Output (default to os.Stdout) should not be used directly (for example with fmt.Print*()) after Start() is called and until Stop() is called.
-// See ByPass() to get a writer that will bypass the live progress and write directly to the output without disrupting it.
+// See ByPass() to get a writer that will bypass the live progress and write definitive lines directly to the output without disrupting live progress.
 func Start() (err error) {
 	liveterm.RefreshInterval = RefreshInterval
 	liveterm.Output = Output
@@ -105,8 +103,8 @@ func Start() (err error) {
 	return
 }
 
-// Stop stops the live progress and remove. Set clear to true to clear the liveprogress output.
-// After this call, Output can be used directly again.
+// Stop stops the live progress and remove all registered bars and custom lines from its internal state.
+// Set clear to true to clear the liveprogress output. After this call, Output can be used directly again (no need to use ByPass() anymore).
 func Stop(clear bool) (err error) {
 	// if clear is false, liveterm will call updater one last time (and thus locking the mutex)
 	err = liveterm.Stop(clear)
@@ -135,13 +133,13 @@ func updater() (lines []string) {
 	Specials
 */
 
-// Bypass returns a writer that will bypass the live progress and write directly to the output without being wiped.
+// Bypass returns a writer that will bypass the live progress and write directly to the output without being wiped by the next refresh.
 func Bypass() io.Writer {
 	return liveterm.Bypass()
 }
 
 // CustomLine is a custom line to add to the live progress.
-// Do not instantiate it directly, use AddCustomLine instead.
+// Do not instantiate it directly, use AddCustomLine() instead.
 type CustomLine struct {
 	generator func() string
 }

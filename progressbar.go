@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	DefaultTotal         = 100 // DefaultTotal is the default total value of a progress bar.
+	DefaultTotal         = 100 // DefaultTotal is the default total value of a progress bar. See WithTotal() to change a bar total at creation.
 	minimumProgressWidth = 8
 )
 
-// BarOption is a function that can be used to configure a progress bar.
+// BarOption is a function that can be used to configure a progress bar at creation, see AddBar() or SetMainLineAsBar().
 type BarOption func(*Bar)
 
 // WithTotal sets the total value of the progress bar.
@@ -31,21 +31,22 @@ func WithTotal(total uint64) BarOption {
 // By default the with is set to 0, this will take the full terminal width (minus decorators).
 func WithWidth(width int) BarOption {
 	return func(pb *Bar) {
-		pb.width = width
+		pb.barWidth = width
 	}
 }
 
-// WithStyle sets the style of the progress bar.
-func WithRunes(style BarStyle) BarOption {
+// WithRunes sets the runes used by the progress bar.
+func WithRunes(runes BarRunes) BarOption {
 	return func(pb *Bar) {
-		pb.style = style
-		pb.styleWidth = style.width()
+		pb.barRunes = runes
+		pb.barRunesMaxLen = runes.maxLen()
+		pb.barRunesWidth = runes.width()
 	}
 }
 
 // WithASCIIStyle sets the style of the progress bar to an ASCII style. This is applied by default.
 func WithASCIIRunes() BarOption {
-	return WithRunes(BarStyle{
+	return WithRunes(BarRunes{
 		LeftEnd:  '[',
 		Fill:     '=',
 		Head:     '>',
@@ -56,7 +57,7 @@ func WithASCIIRunes() BarOption {
 
 // WithPlainStyle sets the style of the progress bar to a plain style.
 func WithPlainRunes() BarOption {
-	return WithRunes(BarStyle{
+	return WithRunes(BarRunes{
 		LeftEnd:  0,
 		Fill:     '█',
 		Head:     '▌',
@@ -67,7 +68,7 @@ func WithPlainRunes() BarOption {
 
 // WithLineStyle sets the style of the progress bar to an box drawing lines style.
 func WithLineFillRunes() BarOption {
-	return WithRunes(BarStyle{
+	return WithRunes(BarRunes{
 		LeftEnd:  0,
 		Fill:     '━',
 		Head:     '╍',
@@ -78,7 +79,7 @@ func WithLineFillRunes() BarOption {
 
 // WithLineStyle sets the style of the progress bar to an box drawing lines style.
 func WithLineBracketsRunes() BarOption {
-	return WithRunes(BarStyle{
+	return WithRunes(BarRunes{
 		LeftEnd:  '┣',
 		Fill:     '━',
 		Head:     '╸',
@@ -173,8 +174,8 @@ func WithAppendTimeRemaining(style termenv.Style) BarOption {
 	}
 }
 
-// BarStyle is the style of a progress bar.
-type BarStyle struct {
+// BarRunes is the style of a progress bar.
+type BarRunes struct {
 	LeftEnd  rune
 	Fill     rune
 	Head     rune
@@ -182,8 +183,8 @@ type BarStyle struct {
 	RightEnd rune
 }
 
-func (b BarStyle) width() barStyleWidth {
-	return barStyleWidth{
+func (b BarRunes) width() barRunesWidth {
+	return barRunesWidth{
 		LeftEnd:  runewidth.RuneWidth(b.LeftEnd),
 		Fill:     runewidth.RuneWidth(b.Fill),
 		Head:     runewidth.RuneWidth(b.Head),
@@ -192,7 +193,26 @@ func (b BarStyle) width() barStyleWidth {
 	}
 }
 
-type barStyleWidth struct {
+func (br BarRunes) maxLen() (max int) {
+	if len(string(br.LeftEnd)) > max {
+		max = len(string(br.LeftEnd))
+	}
+	if len(string(br.Fill)) > max {
+		max = len(string(br.Fill))
+	}
+	if len(string(br.Head)) > max {
+		max = len(string(br.Head))
+	}
+	if len(string(br.Empty)) > max {
+		max = len(string(br.Empty))
+	}
+	if len(string(br.RightEnd)) > max {
+		max = len(string(br.RightEnd))
+	}
+	return
+}
+
+type barRunesWidth struct {
 	LeftEnd  int
 	Fill     int
 	Head     int
@@ -202,12 +222,13 @@ type barStyleWidth struct {
 
 // Bar is a progress bar that can be added to the live progress. Do not instanciate it directly, use AddBar() instead.
 type Bar struct {
-	// style
-	width      int
-	style      BarStyle
-	styleWidth barStyleWidth
-	barStyle   termenv.Style
-	// progress
+	// bar config and properties
+	barWidth       int
+	barRunes       BarRunes
+	barRunesMaxLen int
+	barRunesWidth  barRunesWidth
+	barStyle       termenv.Style
+	// progress values
 	current atomic.Uint64
 	total   uint64
 	// decorators
@@ -218,9 +239,11 @@ type Bar struct {
 
 func newBar(opts ...BarOption) (b *Bar) {
 	b = &Bar{
-		barStyle:  BaseStyle(),
-		total:     DefaultTotal,
-		createdAt: time.Now(),
+		barStyle:     BaseStyle(),
+		total:        DefaultTotal,
+		createdAt:    time.Now(),
+		prependFuncs: make([]DecoratorFunc, 0, len(opts)),
+		appendFuncs:  make([]DecoratorFunc, 0, len(opts)),
 	}
 	WithASCIIRunes()(b) // default, can be overridden by opts
 	for _, opt := range opts {
@@ -263,7 +286,7 @@ func (pb *Bar) String() string {
 	for index, fx := range pb.prependFuncs {
 		pfx[index] = fx(pb)
 		pfxLen += len(pfx[index])
-		if pb.width == 0 {
+		if pb.barWidth == 0 {
 			pfxWidth += runewidth.StringWidth(pfx[index])
 		}
 	}
@@ -274,7 +297,7 @@ func (pb *Bar) String() string {
 	for index, fx := range pb.appendFuncs {
 		afx[index] = fx(pb)
 		afxLen += len(afx[index])
-		if pb.width == 0 {
+		if pb.barWidth == 0 {
 			afxWidth += runewidth.StringWidth(afx[index])
 		}
 	}
@@ -284,7 +307,7 @@ func (pb *Bar) String() string {
 		progress      strings.Builder
 	)
 	switch {
-	case pb.width == 0:
+	case pb.barWidth == 0:
 		// Calculate the width of the progress bar
 		termCols, _ := liveterm.GetTermSize()
 		progressWidth = termCols - pfxWidth - afxWidth
@@ -292,14 +315,14 @@ func (pb *Bar) String() string {
 			// this will break line
 			progressWidth = minimumProgressWidth
 		}
-	case pb.width < minimumProgressWidth:
+	case pb.barWidth < minimumProgressWidth:
 		progressWidth = minimumProgressWidth
 	default:
-		progressWidth = pb.width
+		progressWidth = pb.barWidth
 	}
-	progress.Grow(progressWidth)
-	progress.WriteRune(pb.style.LeftEnd)
-	barWidth := progressWidth - pb.styleWidth.LeftEnd - pb.styleWidth.RightEnd
+	progress.Grow(pb.barRunesMaxLen * progressWidth) // theorical maximum number of bytes the progress bar can take
+	progress.WriteRune(pb.barRunes.LeftEnd)
+	barWidth := progressWidth - pb.barRunesWidth.LeftEnd - pb.barRunesWidth.RightEnd
 	progressRatio := pb.Progress()
 	if progressRatio > 1 {
 		progressRatio = 1
@@ -307,22 +330,22 @@ func (pb *Bar) String() string {
 	completionWidth := int(math.Round(progressRatio * float64(barWidth)))
 	completionActualWidth := 0
 	if progressRatio == 1 {
-		for i := 0; i < completionWidth/pb.styleWidth.Fill; i++ {
-			progress.WriteRune(pb.style.Fill)
-			completionActualWidth += pb.styleWidth.Fill
+		for i := 0; i < completionWidth/pb.barRunesWidth.Fill; i++ {
+			progress.WriteRune(pb.barRunes.Fill)
+			completionActualWidth += pb.barRunesWidth.Fill
 		}
-	} else if completionWidth >= pb.styleWidth.Head {
-		for i := 0; i < (completionWidth-pb.styleWidth.Head)/pb.styleWidth.Fill; i++ {
-			progress.WriteRune(pb.style.Fill)
-			completionActualWidth += pb.styleWidth.Fill
+	} else if completionWidth >= pb.barRunesWidth.Head {
+		for i := 0; i < (completionWidth-pb.barRunesWidth.Head)/pb.barRunesWidth.Fill; i++ {
+			progress.WriteRune(pb.barRunes.Fill)
+			completionActualWidth += pb.barRunesWidth.Fill
 		}
-		progress.WriteRune(pb.style.Head)
-		completionActualWidth += pb.styleWidth.Head
+		progress.WriteRune(pb.barRunes.Head)
+		completionActualWidth += pb.barRunesWidth.Head
 	}
-	for i := 0; i < (barWidth-completionActualWidth)/pb.styleWidth.Empty; i++ {
-		progress.WriteRune(pb.style.Empty)
+	for i := 0; i < (barWidth-completionActualWidth)/pb.barRunesWidth.Empty; i++ {
+		progress.WriteRune(pb.barRunes.Empty)
 	}
-	progress.WriteRune(pb.style.RightEnd)
+	progress.WriteRune(pb.barRunes.RightEnd)
 	// Assemble
 	var assembler strings.Builder
 	assembler.Grow(pfxLen + progress.Len() + afxLen)
