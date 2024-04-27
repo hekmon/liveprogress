@@ -73,7 +73,7 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 	}
 	// Create the hasher
 	hasher := New(fd, size)
-	// default options
+	// Create the hasher progress bar
 	italic := colors.NoColor.Italic()
 	faint := colors.NoColor.Faint()
 	defaultOpts := []liveprogress.BarOption{
@@ -93,11 +93,7 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 		}),
 		liveprogress.WithAppendTimeRemaining(colors.NoColor),
 	}
-	// Create the hasher progress bar
 	bar := liveprogress.AddBar(append(opts, defaultOpts...)...)
-	if bar == nil {
-		panic("failed to create progress bar")
-	}
 	// Start hashing
 	workers.Add(1)
 	go func() {
