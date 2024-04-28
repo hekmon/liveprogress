@@ -19,7 +19,7 @@ func main() {
 	// By default a bar total is set to 100
 	for i := 0; i < liveprogress.DefaultTotal; i++ {
 		// Wait a random time
-		time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond)
+		time.Sleep(time.Duration(rand.Intn(300)) * time.Millisecond)
 		// Increment the bar
 		bar.CurrentIncrement()
 	}
