@@ -46,8 +46,8 @@ func main() {
 	// File 2
 	hashRandom(size8G,
 		liveprogress.WithLineFillRunes(),
-		liveprogress.WithBarStyle(colors.ANSIExtended93),
-		liveprogress.WithAppendPercent(colors.ANSIExtended93.Bold()),
+		liveprogress.WithBarStyle(colors.ANSIExtended27),
+		liveprogress.WithAppendPercent(colors.ANSIExtended27.Bold()),
 	)
 	// File 3
 	hashRandom(size3G,
