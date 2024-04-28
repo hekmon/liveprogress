@@ -78,7 +78,7 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 	faint := colors.NoColor.Faint()
 	defaultOpts := []liveprogress.BarOption{
 		liveprogress.WithTotal(uint64(size)),
-		liveprogress.WithWidth(barWidth),
+		// liveprogress.WithWidth(barWidth),
 		liveprogress.WithPrependDecorator(func(bar *liveprogress.Bar) string {
 			return fmt.Sprintf("Hashing %d bytes >>>  ", size)
 		}),
