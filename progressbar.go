@@ -9,6 +9,7 @@ import (
 
 	"github.com/hekmon/liveterm/v2"
 	"github.com/mattn/go-runewidth"
+	"github.com/muesli/ansi"
 	"github.com/muesli/termenv"
 )
 
@@ -303,7 +304,7 @@ func (pb *Bar) String() string {
 		pfx[index] = fx(pb)
 		pfxLen += len(pfx[index])
 		if pb.barWidth == 0 {
-			pfxWidth += runewidth.StringWidth(pfx[index])
+			pfxWidth += ansi.PrintableRuneWidth(pfx[index])
 		}
 	}
 	// Append fx
@@ -314,7 +315,7 @@ func (pb *Bar) String() string {
 		afx[index] = fx(pb)
 		afxLen += len(afx[index])
 		if pb.barWidth == 0 {
-			afxWidth += runewidth.StringWidth(afx[index])
+			afxWidth += ansi.PrintableRuneWidth(afx[index])
 		}
 	}
 	// Progress

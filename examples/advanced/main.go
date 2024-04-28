@@ -88,10 +88,10 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 				faint.Styled(fmt.Sprintf("0x%X", hasher.GetCurrentHash())),
 			)
 		}),
-		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
-			return "  Remaining:"
-		}),
-		liveprogress.WithAppendTimeRemaining(colors.NoColor),
+		// liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
+		// 	return "  Remaining:"
+		// }),
+		// liveprogress.WithAppendTimeRemaining(colors.NoColor),
 	}
 	bar := liveprogress.AddBar(append(opts, defaultOpts...)...)
 	// Start hashing
