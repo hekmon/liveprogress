@@ -6,10 +6,11 @@ Require go
 
 Set Shell "bash"
 Set FontSize 16
-Set Width 2140
-Set Height 300
+Set Width 1800
+Set Height 230
 Set Padding 20
 Set WindowBar ColorfulRight
+Set WindowBarSize 40
 
 Type "go run examples/advanced/main.go" Sleep 500ms Enter
-Sleep 30s
+Sleep 26s

@@ -14,6 +14,10 @@ func main() {
 	}
 	bar := liveprogress.AddBar(
 		liveprogress.WithPrependPercent(liveprogress.BaseStyle()),
+		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
+			return " Remaining:"
+		}),
+		liveprogress.WithAppendTimeRemaining(liveprogress.BaseStyle()),
 	)
 	// By default a bar total is set to 100
 	for i := 0; i < liveprogress.DefaultTotal; i++ {

@@ -14,12 +14,9 @@ import (
 )
 
 const (
-	// sizes
 	size3G = 3 * 1024 * 1024 * 1024
 	size5G = 5 * 1024 * 1024 * 1024
 	size8G = 8 * 1024 * 1024 * 1024
-	// bar width for example
-	barWidth = 40
 )
 
 var (
@@ -77,10 +74,10 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 	italic := colors.NoColor.Italic()
 	faint := colors.NoColor.Faint()
 	defaultOpts := []liveprogress.BarOption{
+		// liveprogress.WithWidth(40),
 		liveprogress.WithTotal(uint64(size)),
-		// liveprogress.WithWidth(barWidth),
 		liveprogress.WithPrependDecorator(func(bar *liveprogress.Bar) string {
-			return fmt.Sprintf("Hashing %d bytes >>>  ", size)
+			return fmt.Sprintf("Hashing %d random bytes >>  ", size)
 		}),
 		liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
 			return fmt.Sprintf("  %s bytes read, SHA256: %s",
@@ -88,10 +85,6 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 				faint.Styled(fmt.Sprintf("0x%X", hasher.GetCurrentHash())),
 			)
 		}),
-		// liveprogress.WithAppendDecorator(func(bar *liveprogress.Bar) string {
-		// 	return "  Remaining:"
-		// }),
-		// liveprogress.WithAppendTimeRemaining(colors.NoColor),
 	}
 	bar := liveprogress.AddBar(append(opts, defaultOpts...)...)
 	// Start hashing
