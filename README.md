@@ -10,7 +10,7 @@ In addition of the features of [liveterm](https://github.com/hekmon/liveterm), i
 	* usage of atomic operations for bar progress
 	* decorators can be added only when instanciating the bar
 * Custom (dynamic) lines that can be anything (not necessarly a progress bar)
-* Main line concept: a bar or a custom line that will always be printed last (usefull for global progress when others lines indicate specific progress)
+* Main line concept: a bar or a custom line that will always be printed last (usefull for global progress when others lines above it indicate specific progress)
 * Ability to style the bar and decorators using [termenv](https://github.com/muesli/termenv) styles
 
 ## Examples
