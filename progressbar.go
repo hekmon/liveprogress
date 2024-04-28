@@ -50,11 +50,11 @@ func WithRunes(runes BarRunes) BarOption {
 // WithASCIIRunes sets the style of the progress bar to an ASCII style. This is applied by default.
 func WithASCIIRunes() BarOption {
 	return WithRunes(BarRunes{
-		LeftEnd:  '[',
-		Fill:     '=',
-		Head:     '>',
-		Empty:    '-',
-		RightEnd: ']',
+		LeftEnd:  '[', // https://www.compart.com/unicode/U+005B
+		Fill:     '=', // https://www.compart.com/unicode/U+003D
+		Head:     '>', // https://www.compart.com/unicode/U+003E
+		Empty:    '-', // https://www.compart.com/unicode/U+002D
+		RightEnd: ']', // https://www.compart.com/unicode/U+005D
 	})
 }
 
@@ -62,9 +62,9 @@ func WithASCIIRunes() BarOption {
 func WithPlainRunes() BarOption {
 	return WithRunes(BarRunes{
 		LeftEnd:  0,
-		Fill:     '█',
-		Head:     '▌',
-		Empty:    '░',
+		Fill:     '█', // https://www.compart.com/unicode/U+2588
+		Head:     '█', // https://www.compart.com/unicode/U+258C
+		Empty:    '░', // https://www.compart.com/unicode/U+2591
 		RightEnd: 0,
 	})
 }
@@ -73,9 +73,9 @@ func WithPlainRunes() BarOption {
 func WithLineFillRunes() BarOption {
 	return WithRunes(BarRunes{
 		LeftEnd:  0,
-		Fill:     '━',
-		Head:     '╍',
-		Empty:    '┅',
+		Fill:     '━', // https://www.compart.com/unicode/U+2501
+		Head:     '━', // https://www.compart.com/unicode/U+2501
+		Empty:    '┉', // https://www.compart.com/unicode/U+2509
 		RightEnd: 0,
 	})
 }
@@ -83,11 +83,11 @@ func WithLineFillRunes() BarOption {
 // WithLineBracketsRunes sets the style of the progress bar to an box drawing lines style.
 func WithLineBracketsRunes() BarOption {
 	return WithRunes(BarRunes{
-		LeftEnd:  '┣',
-		Fill:     '━',
-		Head:     '╸',
-		Empty:    ' ',
-		RightEnd: '┫',
+		LeftEnd:  '┣', // https://www.compart.com/unicode/U+2523
+		Fill:     '━', // https://www.compart.com/unicode/U+2501
+		Head:     '╸', // https://www.compart.com/unicode/U+2578
+		Empty:    ' ', // https://www.compart.com/unicode/U+0020
+		RightEnd: '┫', // https://www.compart.com/unicode/U+252B
 	})
 }
 
