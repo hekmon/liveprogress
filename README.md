@@ -40,13 +40,13 @@ if err := liveprogress.Stop(true); err != nil {
 fmt.Println("By setting the Stop() bool parameter to true, the progress bar is cleared at stop.")
 ```
 
-![Simple example output animation](https://github.com/hekmon/liveprogress/blob/main/examples/simple/example.gif?raw=true)
+![Simple example output animation](https://media.githubusercontent.com/media/hekmon/liveprogress/main/examples/simple/example.gif)
 
 ### Advanced
 
 See full source code [here](examples/advanced/main.go).
 
-![Advanced example output animation](https://github.com/hekmon/liveprogress/blob/main/examples/advanced/example.gif?raw=true)
+![Advanced example output animation](https://media.githubusercontent.com/media/hekmon/liveprogress/main/examples/advanced/example.gif)
 
 ## Installation
 
