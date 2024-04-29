@@ -51,7 +51,7 @@ func main() {
 	)
 	// File 3
 	hashRandom(size3G,
-		liveprogress.WithLineBracketsRunes(),
+		liveprogress.WithMultiplyRunes(),
 		liveprogress.WithBarStyle(colors.ANSIBasicGreen),
 		liveprogress.WithAppendPercent(colors.ANSIBasicGreen.Bold()),
 	)

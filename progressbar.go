@@ -80,14 +80,13 @@ func WithLineFillRunes() BarOption {
 	})
 }
 
-// WithLineBracketsRunes sets the style of the progress bar to an box drawing lines style.
-func WithLineBracketsRunes() BarOption {
+func WithMultiplyRunes() BarOption {
 	return WithRunes(BarRunes{
-		LeftEnd:  '┣', // https://www.compart.com/unicode/U+2523
-		Fill:     '━', // https://www.compart.com/unicode/U+2501
-		Head:     '╸', // https://www.compart.com/unicode/U+2578
+		LeftEnd:  '❮', // https://www.compart.com/unicode/U+276E
+		Fill:     '×', // https://www.compart.com/unicode/U+00D7
+		Head:     '×', // https://www.compart.com/unicode/U+00D7
 		Empty:    ' ', // https://www.compart.com/unicode/U+0020
-		RightEnd: '┫', // https://www.compart.com/unicode/U+252B
+		RightEnd: '❯', // https://www.compart.com/unicode/U+276F
 	})
 }
 
