@@ -119,63 +119,67 @@ func WithPrependDecorator(decorators ...DecoratorFunc) BarOption {
 // WithPrependPercent adds the percentage of the progress bar to the beginning of the bar.
 // Use BaseStyle() if you do not want any particular style.
 func WithPrependPercent(style termenv.Style) BarOption {
-	return func(pb *Bar) {
-		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
-			return style.Styled(fmt.Sprintf("%3d%% ", getPercent(pb)))
-		})
-	}
+	return WithPrependDecorator(func(pb *Bar) string {
+		return style.Styled(getPercent(pb.Progress())) + " "
+	})
 }
 
 // WithAppendPercent adds the percentage of the progress bar to the end of the bar.
 // Use BaseStyle() if you do not want any particular style.
 func WithAppendPercent(style termenv.Style) BarOption {
-	return func(pb *Bar) {
-		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
-			return style.Styled(fmt.Sprintf(" %3d%%", getPercent(pb)))
-		})
+	return WithAppendDecorator(func(pb *Bar) string {
+		return " " + style.Styled(getPercent(pb.Progress()))
+	})
+}
+
+func getPercent(progress float64) (percent string) {
+	progress *= 100
+	percentInt := int(math.Round(progress))
+	if percentInt == 100 && progress < 100 {
+		// round has made us reach 100 but we don't want to show 100% if not entirely complete
+		percentInt = 99
 	}
+	return fmt.Sprintf("%3d%%", percentInt)
 }
 
 // WithPrependTimeElapsed adds the time elapsed since the creation of the progress bar to the beginning of the bar.
 // Use BaseStyle() if you do not want any particular style.
 func WithPrependTimeElapsed(style termenv.Style) BarOption {
-	return func(pb *Bar) {
-		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
-			return style.Styled(fmt.Sprintf("%s ", time.Since(pb.createdAt).Round(time.Second)))
-		})
-	}
+	return WithPrependDecorator(func(pb *Bar) string {
+		return style.Styled(getTimeElapsed(pb.GetCreationTime())) + " "
+	})
 }
 
 // WithAppendTimeElapsed adds the time elapsed since the creation of the progress bar to the end of the bar.
 // Use BaseStyle() if you do not want any particular style.
 func WithAppendTimeElapsed(style termenv.Style) BarOption {
-	return func(pb *Bar) {
-		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
-			return style.Styled(fmt.Sprintf(" %s", time.Since(pb.createdAt).Round(time.Second)))
-		})
-	}
+	return WithAppendDecorator(func(pb *Bar) string {
+		return " " + style.Styled(getTimeElapsed(pb.GetCreationTime()))
+	})
+}
+
+func getTimeElapsed(start time.Time) string {
+	return time.Since(start).Round(time.Second).String()
 }
 
 // WithPrependTimeRemaining adds the time remaining until the end of the progress bar to the beginning of the bar.
 // Use BaseStyle() if you do not want any particular style.
 func WithPrependTimeRemaining(style termenv.Style) BarOption {
-	return func(pb *Bar) {
-		pb.prependFuncs = append(pb.prependFuncs, func(pb *Bar) string {
-			progress := pb.Progress()
-			return style.Styled(fmt.Sprintf("~%s ", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second)))
-		})
-	}
+	return WithPrependDecorator(func(pb *Bar) string {
+		return style.Styled(getRemainingTime(pb.GetCreationTime(), pb.Progress())) + " "
+	})
 }
 
 // WithAppendTimeRemaining adds the time remaining until the end of the progress bar to the end of the bar.
 // Use BaseStyle() if you do not want any particular style.
 func WithAppendTimeRemaining(style termenv.Style) BarOption {
-	return func(pb *Bar) {
-		pb.appendFuncs = append(pb.appendFuncs, func(pb *Bar) string {
-			progress := pb.Progress()
-			return style.Styled(fmt.Sprintf(" ~%s", time.Duration((1-progress)*(float64(time.Since(pb.createdAt))/progress)).Round(time.Second)))
-		})
-	}
+	return WithAppendDecorator(func(pb *Bar) string {
+		return " " + style.Styled(getRemainingTime(pb.GetCreationTime(), pb.Progress()))
+	})
+}
+
+func getRemainingTime(start time.Time, progress float64) string {
+	return "~" + time.Duration((1-progress)*(float64(time.Since(start))/progress)).Round(time.Second).String()
 }
 
 // BarRunes is the composition of a progress bar.
@@ -379,14 +383,4 @@ func (pb *Bar) String() string {
 // Total returns the total value of the progress bar.
 func (pb *Bar) Total() uint64 {
 	return pb.total
-}
-
-func getPercent(pb *Bar) (percent int) {
-	progress := pb.Progress() * 100
-	percent = int(math.Round(progress))
-	if percent == 100 && progress < 100 {
-		// round has made us reach 100 but we don't want to show 100% if not entirely complete
-		percent = 99
-	}
-	return
 }
