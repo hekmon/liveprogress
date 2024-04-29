@@ -278,14 +278,14 @@ func (pb *Bar) CurrentAdd(value uint64) {
 	pb.current.Add(value)
 }
 
-// CurrentSet sets the current value of the progress bar.
-func (pb *Bar) CurrentSet(value uint64) {
-	pb.current.Store(value)
-}
-
 // CurrentIncrement increments the current value of the progress bar by 1.
 func (pb *Bar) CurrentIncrement() {
 	pb.CurrentAdd(1)
+}
+
+// CurrentSet sets the current value of the progress bar.
+func (pb *Bar) CurrentSet(value uint64) {
+	pb.current.Store(value)
 }
 
 // GetCreationTime returns the time at which the progress bar was created.
