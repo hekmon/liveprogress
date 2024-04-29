@@ -113,16 +113,14 @@ func Stop(clear bool) (err error) {
 
 func updater() (lines []string) {
 	itemsAccess.Lock()
-	nbLines := len(items)
 	if mainItem != nil {
-		nbLines++
+		lines = make([]string, len(items)+1)
+		lines[len(items)] = mainItem.String()
+	} else {
+		lines = make([]string, len(items))
 	}
-	lines = make([]string, nbLines)
 	for index, item := range items {
 		lines[index] = item.String()
-	}
-	if mainItem != nil {
-		lines[nbLines-1] = mainItem.String()
 	}
 	itemsAccess.Unlock()
 	return
