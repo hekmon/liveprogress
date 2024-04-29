@@ -70,9 +70,11 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 	}
 	// Create the hasher
 	hasher := New(fd, size)
-	// Create the hasher progress bar
+	// Prepare some styles
 	italic := colors.NoColor.Italic()
 	faint := colors.NoColor.Faint()
+	bold := colors.NoColor.Bold()
+	// Create the hasher progress bar
 	defaultOpts := []liveprogress.BarOption{
 		// liveprogress.WithWidth(40),
 		liveprogress.WithTotal(uint64(size)),
@@ -96,7 +98,8 @@ func hashRandom(size int, opts ...liveprogress.BarOption) {
 			panic(err)
 		}
 		liveprogress.RemoveBar(bar)
-		fmt.Fprintf(liveprogress.Bypass(), "%d bytes SHA256 done: 0x%X\n", size, hasher.GetCurrentHash())
+		fmt.Fprintf(liveprogress.Bypass(), "%d bytes SHA256 done: %s\n",
+			size, bold.Styled(fmt.Sprintf("0x%X", hasher.GetCurrentHash())))
 	}()
 }
 
