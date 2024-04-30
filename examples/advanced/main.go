@@ -60,6 +60,8 @@ func main() {
 	if err := liveprogress.Stop(true); err != nil {
 		panic(err)
 	}
+	// Output (here os.Stdout, can be resused normally after Stop())
+	fmt.Println("All done!")
 }
 
 func hashRandom(size int, opts ...liveprogress.BarOption) {

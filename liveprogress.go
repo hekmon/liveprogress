@@ -1,6 +1,7 @@
 package liveprogress
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -20,6 +21,7 @@ var (
 var (
 	items       []fmt.Stringer
 	mainItem    fmt.Stringer
+	output      bytes.Buffer
 	itemsAccess sync.Mutex
 )
 
@@ -98,7 +100,8 @@ func SetMainLineAsBar(opts ...BarOption) (pb *Bar) {
 func Start() (err error) {
 	liveterm.RefreshInterval = RefreshInterval
 	liveterm.Output = Output
-	liveterm.SetMultiLinesUpdateFx(updater)
+	liveterm.SetRawUpdateFx(updater)
+	liveterm.HideCursor = true
 	return liveterm.Start()
 }
 
@@ -107,23 +110,31 @@ func Start() (err error) {
 func Stop(clear bool) (err error) {
 	// if clear is false, liveterm will call updater one last time
 	err = liveterm.Stop(clear)
+	// Add a newline to separate the live progress output if needed
+	if !clear && output.Bytes()[output.Len()-1] != '\n' {
+		fmt.Fprint(Output, "\n")
+	}
 	RemoveAll()
 	return
 }
 
-func updater() (lines []string) {
+func updater() []byte {
+	output.Reset()
 	itemsAccess.Lock()
-	if mainItem != nil {
-		lines = make([]string, len(items)+1)
-		lines[len(items)] = mainItem.String()
-	} else {
-		lines = make([]string, len(items))
-	}
 	for index, item := range items {
-		lines[index] = item.String()
+		output.WriteString(item.String())
+		if index < len(items)-1 {
+			output.WriteRune('\n')
+		}
+	}
+	if mainItem != nil {
+		if len(items) > 0 {
+			output.WriteRune('\n')
+		}
+		output.WriteString(mainItem.String())
 	}
 	itemsAccess.Unlock()
-	return
+	return output.Bytes()
 }
 
 /*
