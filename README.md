@@ -1,5 +1,5 @@
 # liveprogress
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/hekmon/liveprogress)](https://pkg.go.dev/github.com/hekmon/liveprogress)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/hekmon/liveprogress/v2)](https://pkg.go.dev/github.com/hekmon/liveprogress/v2)
 
 liveprogress is a golang library allowing to print and update progress bars on a terminal. It is heavily inspired by [uiprogress](https://github.com/gosuri/uiprogress) but redone on top of the forked [liveterm](https://github.com/hekmon/liveterm) library in order to take advantage of its enhancements.
 
