@@ -17,3 +17,8 @@ func (s *Spinner) Next() string {
 	}
 	return string(spinnerStates[s.lastShown])
 }
+
+// String implements the fmt.Stringer interface
+func (s *Spinner) String() string {
+	return s.Next()
+}
