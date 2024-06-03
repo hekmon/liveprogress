@@ -96,8 +96,10 @@ func Stop(clear bool) (err error) {
 	// if clear is false, liveterm will call updater one last time
 	err = liveterm.Stop(clear)
 	// Add a newline to separate the live progress output if needed
-	if !clear && output.Bytes()[output.Len()-1] != '\n' {
-		fmt.Fprint(Output, "\n")
+	if !clear {
+		if output.Len() > 0 && output.Bytes()[output.Len()-1] != '\n' {
+			fmt.Fprint(Output, "\n")
+		}
 	}
 	RemoveAll()
 	return
