@@ -178,6 +178,9 @@ func WithAppendTimeRemaining(style termenv.Style) BarOption {
 }
 
 func getRemainingTime(start time.Time, progress float64) string {
+	if progress == 0 {
+		return "∞"
+	}
 	return "~" + time.Duration((1-progress)*(float64(time.Since(start))/progress)).Round(time.Second).String()
 }
 
