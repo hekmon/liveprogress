@@ -63,7 +63,7 @@ func WithPlainRunes() BarOption {
 	return WithRunes(BarRunes{
 		LeftEnd:  0,
 		Fill:     '█', // https://www.compart.com/unicode/U+2588
-		Head:     '█', // https://www.compart.com/unicode/U+258C
+		Head:     '█', // https://www.compart.com/unicode/U+2588
 		Empty:    '░', // https://www.compart.com/unicode/U+2591
 		RightEnd: 0,
 	})
@@ -75,7 +75,7 @@ func WithLineFillRunes() BarOption {
 		LeftEnd:  0,
 		Fill:     '━', // https://www.compart.com/unicode/U+2501
 		Head:     '━', // https://www.compart.com/unicode/U+2501
-		Empty:    '┉', // https://www.compart.com/unicode/U+2509
+		Empty:    '┅', // https://www.compart.com/unicode/U+2505
 		RightEnd: 0,
 	})
 }
