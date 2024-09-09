@@ -3,7 +3,7 @@ module github.com/hekmon/liveprogress/v2
 go 1.18
 
 require (
-	github.com/hekmon/liveterm/v2 v2.4.0
+	github.com/hekmon/liveterm/v2 v2.5.0
 	github.com/mattn/go-runewidth v0.0.16
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6
 	github.com/muesli/termenv v0.15.2
