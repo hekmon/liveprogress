@@ -30,9 +30,29 @@ func WithTotal(total uint64) BarOption {
 
 // WithWidth sets the width of the progress bar.
 // By default the width is set to 0: the bar will take the full terminal width (minus decorators).
+// Auto width can be aligned with others auto width bars with WithSameAutoSize().
 func WithWidth(width int) BarOption {
 	return func(pb *Bar) {
 		pb.barWidth = width
+	}
+}
+
+// WithSameAutoSize sets the progress bar to automatically adjust its width (and center) to all others bar with a width of 0 (automatic width)
+// and with the SameAutoSize set. By default left and right decorators will have external padding to center all the automatic length bars.
+// Meaning that white spaces will be added to the left for left decorators group and to the right for right decorators group.
+// See WithInternalPadding() to change that.
+func WithSameAutoSize() BarOption {
+	return func(pb *Bar) {
+		pb.sameAutoSize = true
+	}
+}
+
+// WithInternalPadding sets the padding to be internal instead of external for left and right decorators.
+// Only usefull if WithSameAutoSize() has been set too.
+func WithSameAutoSizeInternalPadding(left, right bool) BarOption {
+	return func(pb *Bar) {
+		pb.internalPaddingLeft = left
+		pb.internalPaddingRight = right
 	}
 }
 
@@ -238,12 +258,15 @@ type barRunesWidth struct {
 // Bar is a progress bar that can be added to the live progress. Do not instanciate it directly, use AddBar() instead.
 type Bar struct {
 	// bar config and properties
-	barWidth       int
-	barRunes       BarRunes
-	barRunesMaxLen int
-	barRunesWidth  barRunesWidth
-	barStyle       termenv.Style
-	barStyleLen    int
+	barWidth             int
+	sameAutoSize         bool
+	internalPaddingLeft  bool
+	internalPaddingRight bool
+	barRunes             BarRunes
+	barRunesMaxLen       int
+	barRunesWidth        barRunesWidth
+	barStyle             termenv.Style
+	barStyleLen          int
 	// progress values
 	current atomic.Uint64
 	total   uint64
@@ -301,7 +324,13 @@ func (pb *Bar) Progress() float64 {
 }
 
 // String returns the string representation of the progress bar.
-func (pb *Bar) String() string {
+func (pb *Bar) String() (line string) {
+	line, _ = pb.render(0, 0, 0)
+	return
+}
+
+// Render returns the string representation of the progress bar with len of its 3 groups.
+func (pb *Bar) render(pfxPadding, overwriteBarWidth, afxPadding int) (line string, barWidth int) {
 	// Prepend fx
 	pfx := make([]string, len(pb.prependFuncs))
 	pfxLen := 0
@@ -331,12 +360,17 @@ func (pb *Bar) String() string {
 	)
 	switch {
 	case pb.barWidth == 0:
-		// Calculate the width of the progress bar
-		termCols, _ := liveterm.GetTermSize()
-		progressWidth = termCols - pfxWidth - afxWidth
-		if progressWidth < minimumProgressWidth {
-			// this will break line
-			progressWidth = minimumProgressWidth
+		if pb.sameAutoSize && overwriteBarWidth != 0 {
+			// Use the provided overwrite
+			progressWidth = overwriteBarWidth
+		} else {
+			// Calculate the width of the progress bar
+			termCols, _ := liveterm.GetTermSize()
+			progressWidth = termCols - pfxWidth - afxWidth
+			if progressWidth < minimumProgressWidth {
+				// this will break line
+				progressWidth = minimumProgressWidth
+			}
 		}
 	case pb.barWidth < minimumProgressWidth:
 		progressWidth = minimumProgressWidth
@@ -345,7 +379,7 @@ func (pb *Bar) String() string {
 	}
 	progress.Grow(pb.barRunesMaxLen * progressWidth) // theorical maximum number of bytes the progress bar can take
 	progress.WriteRune(pb.barRunes.LeftEnd)
-	barWidth := progressWidth - pb.barRunesWidth.LeftEnd - pb.barRunesWidth.RightEnd
+	barWidth = progressWidth - pb.barRunesWidth.LeftEnd - pb.barRunesWidth.RightEnd
 	progressRatio := pb.Progress()
 	if progressRatio > 1 {
 		progressRatio = 1
@@ -371,15 +405,40 @@ func (pb *Bar) String() string {
 	progress.WriteRune(pb.barRunes.RightEnd)
 	// Assemble
 	var assembler strings.Builder
-	assembler.Grow(pfxLen + pb.barStyleLen + progress.Len() + afxLen)
+	assembler.Grow(pfxLen + pfxPadding + pb.barStyleLen + progress.Len() + afxLen + afxPadding)
+	//// pfx
+	if pb.sameAutoSize && !pb.internalPaddingLeft {
+		for i := 0; i < pfxPadding; i++ {
+			assembler.WriteRune(' ')
+		}
+	}
 	for i := 0; i < len(pfx); i++ {
 		assembler.WriteString(pfx[i])
 	}
+	if pb.sameAutoSize && pb.internalPaddingLeft {
+		for i := 0; i < pfxPadding; i++ {
+			assembler.WriteRune(' ')
+		}
+	}
+	//// bar
 	assembler.WriteString(pb.barStyle.Styled(progress.String()))
+	//// afx
+	if pb.sameAutoSize && pb.internalPaddingRight {
+		for i := 0; i < afxPadding; i++ {
+			assembler.WriteRune(' ')
+		}
+	}
 	for i := 0; i < len(afx); i++ {
 		assembler.WriteString(afx[i])
 	}
-	return assembler.String()
+	if pb.sameAutoSize && !pb.internalPaddingRight {
+		for i := 0; i < afxPadding; i++ {
+			assembler.WriteRune(' ')
+		}
+	}
+	// Done
+	line = assembler.String()
+	return
 }
 
 // Total returns the total value of the progress bar.

@@ -107,9 +107,79 @@ func Stop(clear bool) (err error) {
 
 func updater() []byte {
 	output.Reset()
+	defer itemsAccess.Unlock()
 	itemsAccess.Lock()
+	// Choose mode
+	var autoSizeSameSize int
+	for _, item := range items {
+		if bar, ok := item.(*Bar); ok {
+			if bar.barWidth == 0 && bar.sameAutoSize {
+				autoSizeSameSize++
+			}
+		}
+	}
+	if mainItem != nil {
+		if mainBar, ok := mainItem.(*Bar); ok && mainBar.barWidth == 0 && mainBar.sameAutoSize {
+			autoSizeSameSize++
+		}
+	}
+	// Compute
+	if autoSizeSameSize < 2 {
+		// Regular 1 pass mode
+		for index, item := range items {
+			output.WriteString(item.String())
+			if index < len(items)-1 {
+				output.WriteRune('\n')
+			}
+		}
+		if mainItem != nil {
+			if len(items) > 0 {
+				output.WriteRune('\n')
+			}
+			output.WriteString(mainItem.String())
+		}
+		return output.Bytes()
+	}
+	// 2 pass mode for bar autosize
+	//// 1st pass as full auto bar size
+	barWidths := make([]int, len(items)+1)
 	for index, item := range items {
-		output.WriteString(item.String())
+		if bar, ok := item.(*Bar); ok {
+			if bar.barWidth == 0 && bar.sameAutoSize {
+				_, barWidths[index] = bar.render(0, 0, 0)
+			}
+		}
+	}
+	if mainItem != nil {
+		if mainBar, ok := mainItem.(*Bar); ok && mainBar.barWidth == 0 && mainBar.sameAutoSize {
+			_, barWidths[len(barWidths)-1] = mainBar.render(0, 0, 0)
+		}
+	}
+	var smallestBar int
+	for i := range barWidths {
+		if barWidths[i] > 0 {
+			if smallestBar == 0 || barWidths[i] < smallestBar {
+				smallestBar = barWidths[i]
+			}
+		}
+	}
+	// 2nd pass as fixed bar size
+	for index, item := range items {
+		if bar, ok := item.(*Bar); ok {
+			if bar.barWidth == 0 && bar.sameAutoSize {
+				barDiff := barWidths[index] - smallestBar
+				pfxPadding := barDiff / 2
+				apfPadding := barDiff - pfxPadding
+				barStr, _ := bar.render(pfxPadding, smallestBar, apfPadding)
+				output.WriteString(barStr)
+			} else {
+				// progress bar but without same auto size
+				output.WriteString(item.String())
+			}
+		} else {
+			// custom line
+			output.WriteString(item.String())
+		}
 		if index < len(items)-1 {
 			output.WriteRune('\n')
 		}
@@ -118,9 +188,16 @@ func updater() []byte {
 		if len(items) > 0 {
 			output.WriteRune('\n')
 		}
-		output.WriteString(mainItem.String())
+		if mainBar, ok := mainItem.(*Bar); ok && mainBar.barWidth == 0 && mainBar.sameAutoSize {
+			barDiff := barWidths[len(barWidths)-1] - smallestBar
+			pfxPadding := barDiff / 2
+			apfPadding := barDiff - pfxPadding
+			barStr, _ := mainBar.render(pfxPadding, smallestBar, apfPadding)
+			output.WriteString(barStr)
+		} else {
+			output.WriteString(mainItem.String())
+		}
 	}
-	itemsAccess.Unlock()
 	return output.Bytes()
 }
 
