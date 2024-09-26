@@ -439,6 +439,7 @@ func (pb *Bar) renderBar(lineWidth, pfxWidth, afxWidth, overwriteBarWidth int) (
 	for i := 0; i < (barWithinWidth-completionActualWidth)/pb.barRunesWidth.Empty; i++ {
 		progress.WriteRune(pb.barRunes.Empty)
 	}
+	progress.WriteRune(pb.barRunes.RightEnd)
 	bar = progress.String()
 	return
 }
