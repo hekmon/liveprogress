@@ -104,7 +104,6 @@ func WithMultiplyRunes() BarOption {
 func WithBarStyle(style termenv.Style) BarOption {
 	return func(pb *Bar) {
 		pb.barStyle = style
-		pb.barStyleLen = len(style.String())
 	}
 }
 
@@ -255,7 +254,6 @@ type Bar struct {
 	barRunesMaxLen       int
 	barRunesWidth        barRunesWidth
 	barStyle             termenv.Style
-	barStyleLen          int
 	// progress values
 	current atomic.Uint64
 	total   uint64
@@ -318,10 +316,10 @@ func (pb *Bar) String() (line string) {
 	lineWidth, _ := liveterm.GetTermSize()
 	pfx, pfxWidth := pb.renderPfx()
 	afx, afxWidth := pb.renderAfx()
-	bar := pb.renderBar(lineWidth, pfxWidth, afxWidth, 0)
+	bar := pb.renderProgressBar(lineWidth, pfxWidth, afxWidth, 0)
 	// Assemble
 	var assembler strings.Builder
-	assembler.Grow(len(pfx) + pb.barStyleLen + len(bar) + len(afx))
+	assembler.Grow(len(pfx) + len(bar) + len(afx))
 	assembler.WriteString(pfx)
 	assembler.WriteString(bar)
 	assembler.WriteString(afx)
@@ -352,7 +350,7 @@ func (pb *Bar) renderAutoSize(pfx, afx string, lineWidth, pfxWidth, pfxPadding, 
 		builder.WriteString(strings.Repeat(" ", pfxPadding))
 	}
 	// bar
-	builder.WriteString(pb.renderBar(lineWidth, pfxWidth, afxWidth, barWidth))
+	builder.WriteString(pb.renderProgressBar(lineWidth, pfxWidth, afxWidth, barWidth))
 	// afx
 	if !pb.internalPaddingRight {
 		builder.WriteString(strings.Repeat(" ", afxPadding))
@@ -391,7 +389,7 @@ func (pb *Bar) renderAfx() (afx string, afxWidth int) {
 	return
 }
 
-func (pb *Bar) renderBar(lineWidth, pfxWidth, afxWidth, overwriteBarWidth int) (bar string) {
+func (pb *Bar) renderProgressBar(lineWidth, pfxWidth, afxWidth, overwriteBarWidth int) (bar string) {
 	var (
 		progressWidth int
 		progress      strings.Builder
