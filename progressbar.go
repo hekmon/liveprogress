@@ -37,16 +37,6 @@ func WithWidth(width int) BarOption {
 	}
 }
 
-// WithSameAutoSize sets the progress bar to automatically adjust its width (and center) to all others bar with a width of 0 (automatic width)
-// and with the SameAutoSize set. By default left and right decorators will have external padding to center all the automatic length bars.
-// Meaning that white spaces will be added to the left for left decorators group and to the right for right decorators group.
-// See WithInternalPadding() to change that.
-func WithSameAutoSize() BarOption {
-	return func(pb *Bar) {
-		pb.sameAutoSize = true
-	}
-}
-
 // WithInternalPadding sets the padding to be internal instead of external for left and right decorators.
 // Only usefull if WithSameAutoSize() has been set too.
 func WithSameAutoSizeInternalPadding(left, right bool) BarOption {
@@ -259,7 +249,6 @@ type barRunesWidth struct {
 type Bar struct {
 	// bar config and properties
 	barWidth             int
-	sameAutoSize         bool
 	internalPaddingLeft  bool
 	internalPaddingRight bool
 	barRunes             BarRunes
@@ -323,14 +312,25 @@ func (pb *Bar) Progress() float64 {
 	return float64(pb.current.Load()) / float64(pb.total)
 }
 
-// String returns the string representation of the progress bar.
+// String returns a naive (does not support the AutoSizeSameSize) string representation of the progress bar.
 func (pb *Bar) String() (line string) {
-	line, _, _, _ = pb.render(0, 0, 0)
+	// Generate line parts
+	lineWidth, _ := liveterm.GetTermSize()
+	pfx, pfxWidth := pb.renderPfx()
+	afx, afxWidth := pb.renderAfx()
+	bar := pb.renderBar(lineWidth, pfxWidth, afxWidth, 0)
+	// Assemble
+	var assembler strings.Builder
+	assembler.Grow(len(pfx) + pb.barStyleLen + len(bar) + len(afx))
+	assembler.WriteString(pfx)
+	assembler.WriteString(pb.barStyle.Styled(bar))
+	assembler.WriteString(afx)
+	line = assembler.String()
 	return
 }
 
 // Render returns the string representation of the progress bar with len of its 3 groups.
-func (pb *Bar) render(pfxPadding, overwriteBarWidth, afxPadding int) (line string, pfxWidth, barWidth, afxWidth int) {
+func (pb *Bar) renderOld(pfxPadding, overwriteBarWidth, afxPadding int) (line string, pfxWidth, barWidth, afxWidth int) {
 	// Prepend fx
 	pfx := make([]string, len(pb.prependFuncs))
 	pfxLen := 0
@@ -358,7 +358,7 @@ func (pb *Bar) render(pfxPadding, overwriteBarWidth, afxPadding int) (line strin
 	)
 	switch {
 	case pb.barWidth == 0:
-		if pb.sameAutoSize && overwriteBarWidth != 0 {
+		if BarsAutoSizeSameSize && overwriteBarWidth != 0 {
 			// Use the provided overwrite
 			progressWidth = overwriteBarWidth
 		} else {
@@ -405,7 +405,7 @@ func (pb *Bar) render(pfxPadding, overwriteBarWidth, afxPadding int) (line strin
 	var assembler strings.Builder
 	assembler.Grow(pfxLen + pfxPadding + pb.barStyleLen + progress.Len() + afxLen + afxPadding)
 	//// pfx
-	if pb.sameAutoSize && !pb.internalPaddingLeft {
+	if BarsAutoSizeSameSize && !pb.internalPaddingLeft {
 		for i := 0; i < pfxPadding; i++ {
 			assembler.WriteRune(' ')
 		}
@@ -413,7 +413,7 @@ func (pb *Bar) render(pfxPadding, overwriteBarWidth, afxPadding int) (line strin
 	for i := 0; i < len(pfx); i++ {
 		assembler.WriteString(pfx[i])
 	}
-	if pb.sameAutoSize && pb.internalPaddingLeft {
+	if BarsAutoSizeSameSize && pb.internalPaddingLeft {
 		for i := 0; i < pfxPadding; i++ {
 			assembler.WriteRune(' ')
 		}
@@ -421,7 +421,7 @@ func (pb *Bar) render(pfxPadding, overwriteBarWidth, afxPadding int) (line strin
 	//// bar
 	assembler.WriteString(pb.barStyle.Styled(progress.String()))
 	//// afx
-	if pb.sameAutoSize && pb.internalPaddingRight {
+	if BarsAutoSizeSameSize && pb.internalPaddingRight {
 		for i := 0; i < afxPadding; i++ {
 			assembler.WriteRune(' ')
 		}
@@ -429,13 +429,91 @@ func (pb *Bar) render(pfxPadding, overwriteBarWidth, afxPadding int) (line strin
 	for i := 0; i < len(afx); i++ {
 		assembler.WriteString(afx[i])
 	}
-	if pb.sameAutoSize && !pb.internalPaddingRight {
-		for i := 0; i < afxPadding; i++ {
-			assembler.WriteRune(' ')
-		}
-	}
+	// if BarsAutoSizeSameSize && !pb.internalPaddingRight {
+	// 	for i := 0; i < afxPadding; i++ {
+	// 		assembler.WriteRune(' ')
+	// 	}
+	// }
 	// Done
 	line = assembler.String()
+	return
+}
+
+func (pb *Bar) renderPfx() (pfx string, pfxWidth int) {
+	var builder strings.Builder
+	for _, fx := range pb.prependFuncs {
+		builder.WriteString(fx(pb))
+	}
+	pfx = builder.String()
+	// no need to compute width if bar has a fixed size
+	if pb.barWidth == 0 {
+		pfxWidth = ansi.PrintableRuneWidth(pfx)
+	}
+	return
+}
+
+func (pb *Bar) renderAfx() (afx string, afxWidth int) {
+	var builder strings.Builder
+	for _, fx := range pb.appendFuncs {
+		builder.WriteString(fx(pb))
+	}
+	afx = builder.String()
+	// no need to compute width if bar has a fixed size
+	if pb.barWidth == 0 {
+		afxWidth = ansi.PrintableRuneWidth(afx)
+	}
+	return
+}
+
+func (pb *Bar) renderBar(lineWidth, pfxWidth, afxWidth, overwriteBarWidth int) (bar string) {
+	var (
+		progressWidth int
+		progress      strings.Builder
+	)
+	switch {
+	case pb.barWidth == 0:
+		if BarsAutoSizeSameSize && overwriteBarWidth != 0 {
+			// Use the provided overwrite
+			progressWidth = overwriteBarWidth
+		} else {
+			// Calculate the width of the progress bar
+			progressWidth = lineWidth - pfxWidth - afxWidth
+			if progressWidth < minimumProgressWidth {
+				// this will break line
+				progressWidth = minimumProgressWidth
+			}
+		}
+	case pb.barWidth < minimumProgressWidth:
+		progressWidth = minimumProgressWidth
+	default:
+		progressWidth = pb.barWidth
+	}
+	progress.Grow(pb.barRunesMaxLen * progressWidth) // theorical maximum number of bytes the progress bar can take
+	progress.WriteRune(pb.barRunes.LeftEnd)
+	barWithinWidth := progressWidth - pb.barRunesWidth.LeftEnd - pb.barRunesWidth.RightEnd
+	progressRatio := pb.Progress()
+	if progressRatio > 1 {
+		progressRatio = 1
+	}
+	completionWidth := int(math.Round(progressRatio * float64(barWithinWidth)))
+	completionActualWidth := 0
+	if progressRatio == 1 {
+		for i := 0; i < completionWidth/pb.barRunesWidth.Fill; i++ {
+			progress.WriteRune(pb.barRunes.Fill)
+			completionActualWidth += pb.barRunesWidth.Fill
+		}
+	} else if completionWidth >= pb.barRunesWidth.Head {
+		for i := 0; i < (completionWidth-pb.barRunesWidth.Head)/pb.barRunesWidth.Fill; i++ {
+			progress.WriteRune(pb.barRunes.Fill)
+			completionActualWidth += pb.barRunesWidth.Fill
+		}
+		progress.WriteRune(pb.barRunes.Head)
+		completionActualWidth += pb.barRunesWidth.Head
+	}
+	for i := 0; i < (barWithinWidth-completionActualWidth)/pb.barRunesWidth.Empty; i++ {
+		progress.WriteRune(pb.barRunes.Empty)
+	}
+	bar = progress.String()
 	return
 }
 
