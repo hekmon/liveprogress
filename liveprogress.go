@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -147,7 +146,7 @@ func updater() []byte {
 		return output.Bytes()
 	}
 	// 2 pass mode for bar autosize
-	//// 1st pass to get decorators size
+	//// 1st pass to get decorators rendering and width
 	pfx := make([]string, len(items)+1)
 	pfxWidths := make([]int, len(items)+1)
 	afx := make([]string, len(items)+1)
@@ -185,37 +184,9 @@ func updater() []byte {
 	for index, item := range items {
 		if bar, ok := item.(*Bar); ok {
 			if bar.barWidth == 0 {
-				// prepare
-				var builder strings.Builder
-				leftPadding := biggestPfx - pfxWidths[index]
-				if leftPadding < 0 {
-					leftPadding = 0
-				}
-				rightPadding := biggestAfx - afxWidths[index]
-				if rightPadding < 0 {
-					rightPadding = 0
-				}
-				barWidth := lineWidth - leftPadding - pfxWidths[index] - afxWidths[index] - rightPadding
-				// pfx
-				if !bar.internalPaddingLeft {
-					builder.WriteString(strings.Repeat(" ", leftPadding))
-				}
-				builder.WriteString(pfx[index])
-				if bar.internalPaddingLeft {
-					builder.WriteString(strings.Repeat(" ", leftPadding))
-				}
-				// bar
-				builder.WriteString(bar.renderBar(lineWidth, pfxWidths[index], afxWidths[index], barWidth))
-				// afx
-				if !bar.internalPaddingRight {
-					builder.WriteString(strings.Repeat(" ", rightPadding))
-				}
-				builder.WriteString(afx[index])
-				if bar.internalPaddingRight {
-					builder.WriteString(strings.Repeat(" ", rightPadding))
-				}
-				// done
-				output.WriteString(builder.String())
+				pfxPadding := biggestPfx - pfxWidths[index]
+				afxPadding := biggestAfx - afxWidths[index]
+				output.WriteString(bar.renderAutoSize(pfx[index], afx[index], lineWidth, pfxWidths[index], pfxPadding, afxWidths[index], afxPadding))
 			} else {
 				// progress bar but with fixed size
 				output.WriteString(item.String())
@@ -233,37 +204,9 @@ func updater() []byte {
 			output.WriteRune('\n')
 		}
 		if mainBar, ok := mainItem.(*Bar); ok && mainBar.barWidth == 0 {
-			// prepare
-			var builder strings.Builder
-			leftPadding := biggestPfx - pfxWidths[len(pfxWidths)-1]
-			if leftPadding < 0 {
-				leftPadding = 0
-			}
-			rightPadding := biggestAfx - afxWidths[len(afxWidths)-1]
-			if rightPadding < 0 {
-				rightPadding = 0
-			}
-			barWidth := lineWidth - leftPadding - pfxWidths[len(pfxWidths)-1] - afxWidths[len(afxWidths)-1] - rightPadding
-			// pfx
-			if !mainBar.internalPaddingLeft {
-				builder.WriteString(strings.Repeat(" ", leftPadding))
-			}
-			builder.WriteString(pfx[len(pfx)-1])
-			if mainBar.internalPaddingLeft {
-				builder.WriteString(strings.Repeat(" ", leftPadding))
-			}
-			// bar
-			builder.WriteString(mainBar.renderBar(lineWidth, pfxWidths[len(pfxWidths)-1], afxWidths[len(afxWidths)-1], barWidth))
-			// afx
-			if !mainBar.internalPaddingRight {
-				builder.WriteString(strings.Repeat(" ", rightPadding))
-			}
-			builder.WriteString(afx[len(afx)-1])
-			if mainBar.internalPaddingRight {
-				builder.WriteString(strings.Repeat(" ", rightPadding))
-			}
-			// done
-			output.WriteString(builder.String())
+			pfxPadding := biggestPfx - pfxWidths[len(pfxWidths)-1]
+			afxPadding := biggestAfx - afxWidths[len(afxWidths)-1]
+			output.WriteString(mainBar.renderAutoSize(pfx[len(pfx)-1], afx[len(afx)-1], lineWidth, pfxWidths[len(pfxWidths)-1], pfxPadding, afxWidths[len(afxWidths)-1], afxPadding))
 		} else {
 			output.WriteString(mainItem.String())
 		}

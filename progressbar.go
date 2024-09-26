@@ -329,114 +329,40 @@ func (pb *Bar) String() (line string) {
 	return
 }
 
-// Render returns the string representation of the progress bar with len of its 3 groups.
-func (pb *Bar) renderOld(pfxPadding, overwriteBarWidth, afxPadding int) (line string, pfxWidth, barWidth, afxWidth int) {
-	// Prepend fx
-	pfx := make([]string, len(pb.prependFuncs))
-	pfxLen := 0
-	for index, fx := range pb.prependFuncs {
-		pfx[index] = fx(pb)
-		pfxLen += len(pfx[index])
-		if pb.barWidth == 0 {
-			pfxWidth += ansi.PrintableRuneWidth(pfx[index])
-		}
+func (pb *Bar) renderAutoSize(pfx, afx string, lineWidth, pfxWidth, pfxPadding, afxWidth, afxPadding int) string {
+	// prepare
+	var builder strings.Builder
+	if pfxPadding < 0 {
+		pfxPadding = 0
 	}
-	// Append fx
-	afx := make([]string, len(pb.appendFuncs))
-	afxLen := 0
-	for index, fx := range pb.appendFuncs {
-		afx[index] = fx(pb)
-		afxLen += len(afx[index])
-		if pb.barWidth == 0 {
-			afxWidth += ansi.PrintableRuneWidth(afx[index])
-		}
+	if afxPadding < 0 {
+		afxPadding = 0
 	}
-	// Progress
-	var (
-		progressWidth int
-		progress      strings.Builder
-	)
-	switch {
-	case pb.barWidth == 0:
-		if BarsAutoSizeSameSize && overwriteBarWidth != 0 {
-			// Use the provided overwrite
-			progressWidth = overwriteBarWidth
-		} else {
-			// Calculate the width of the progress bar
-			termCols, _ := liveterm.GetTermSize()
-			progressWidth = termCols - pfxWidth - afxWidth
-			if progressWidth < minimumProgressWidth {
-				// this will break line
-				progressWidth = minimumProgressWidth
-			}
-		}
-	case pb.barWidth < minimumProgressWidth:
-		progressWidth = minimumProgressWidth
-	default:
-		progressWidth = pb.barWidth
+	barWidth := lineWidth - pfxPadding - pfxWidth - afxWidth - afxPadding
+	if barWidth < minimumProgressWidth {
+		// will overflow
+		barWidth = minimumProgressWidth
 	}
-	progress.Grow(pb.barRunesMaxLen * progressWidth) // theorical maximum number of bytes the progress bar can take
-	progress.WriteRune(pb.barRunes.LeftEnd)
-	barWidth = progressWidth - pb.barRunesWidth.LeftEnd - pb.barRunesWidth.RightEnd
-	progressRatio := pb.Progress()
-	if progressRatio > 1 {
-		progressRatio = 1
+	// pfx
+	if !pb.internalPaddingLeft {
+		builder.WriteString(strings.Repeat(" ", pfxPadding))
 	}
-	completionWidth := int(math.Round(progressRatio * float64(barWidth)))
-	completionActualWidth := 0
-	if progressRatio == 1 {
-		for i := 0; i < completionWidth/pb.barRunesWidth.Fill; i++ {
-			progress.WriteRune(pb.barRunes.Fill)
-			completionActualWidth += pb.barRunesWidth.Fill
-		}
-	} else if completionWidth >= pb.barRunesWidth.Head {
-		for i := 0; i < (completionWidth-pb.barRunesWidth.Head)/pb.barRunesWidth.Fill; i++ {
-			progress.WriteRune(pb.barRunes.Fill)
-			completionActualWidth += pb.barRunesWidth.Fill
-		}
-		progress.WriteRune(pb.barRunes.Head)
-		completionActualWidth += pb.barRunesWidth.Head
+	builder.WriteString(pfx)
+	if pb.internalPaddingLeft {
+		builder.WriteString(strings.Repeat(" ", pfxPadding))
 	}
-	for i := 0; i < (barWidth-completionActualWidth)/pb.barRunesWidth.Empty; i++ {
-		progress.WriteRune(pb.barRunes.Empty)
+	// bar
+	builder.WriteString(pb.renderBar(lineWidth, pfxWidth, afxWidth, barWidth))
+	// afx
+	if !pb.internalPaddingRight {
+		builder.WriteString(strings.Repeat(" ", afxPadding))
 	}
-	progress.WriteRune(pb.barRunes.RightEnd)
-	// Assemble
-	var assembler strings.Builder
-	assembler.Grow(pfxLen + pfxPadding + pb.barStyleLen + progress.Len() + afxLen + afxPadding)
-	//// pfx
-	if BarsAutoSizeSameSize && !pb.internalPaddingLeft {
-		for i := 0; i < pfxPadding; i++ {
-			assembler.WriteRune(' ')
-		}
-	}
-	for i := 0; i < len(pfx); i++ {
-		assembler.WriteString(pfx[i])
-	}
-	if BarsAutoSizeSameSize && pb.internalPaddingLeft {
-		for i := 0; i < pfxPadding; i++ {
-			assembler.WriteRune(' ')
-		}
-	}
-	//// bar
-	assembler.WriteString(pb.barStyle.Styled(progress.String()))
-	//// afx
-	if BarsAutoSizeSameSize && pb.internalPaddingRight {
-		for i := 0; i < afxPadding; i++ {
-			assembler.WriteRune(' ')
-		}
-	}
-	for i := 0; i < len(afx); i++ {
-		assembler.WriteString(afx[i])
-	}
-	// if BarsAutoSizeSameSize && !pb.internalPaddingRight {
-	// 	for i := 0; i < afxPadding; i++ {
-	// 		assembler.WriteRune(' ')
-	// 	}
+	builder.WriteString(afx)
+	// if pb.internalPaddingRight {
+	// 	builder.WriteString(strings.Repeat(" ", afxPadding))
 	// }
-	// Done
-	line = assembler.String()
-	return
+	// done
+	return builder.String()
 }
 
 func (pb *Bar) renderPfx() (pfx string, pfxWidth int) {
