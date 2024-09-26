@@ -323,7 +323,7 @@ func (pb *Bar) String() (line string) {
 	var assembler strings.Builder
 	assembler.Grow(len(pfx) + pb.barStyleLen + len(bar) + len(afx))
 	assembler.WriteString(pfx)
-	assembler.WriteString(pb.barStyle.Styled(bar))
+	assembler.WriteString(bar)
 	assembler.WriteString(afx)
 	line = assembler.String()
 	return
@@ -440,8 +440,7 @@ func (pb *Bar) renderBar(lineWidth, pfxWidth, afxWidth, overwriteBarWidth int) (
 		progress.WriteRune(pb.barRunes.Empty)
 	}
 	progress.WriteRune(pb.barRunes.RightEnd)
-	bar = progress.String()
-	return
+	return pb.barStyle.Styled(progress.String())
 }
 
 // Total returns the total value of the progress bar.
