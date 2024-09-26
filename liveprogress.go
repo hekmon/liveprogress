@@ -142,24 +142,32 @@ func updater() []byte {
 	}
 	// 2 pass mode for bar autosize
 	//// 1st pass as full auto bar size
+	pfxWidths := make([]int, len(items)+1)
 	barWidths := make([]int, len(items)+1)
+	afxWidths := make([]int, len(items)+1)
 	for index, item := range items {
 		if bar, ok := item.(*Bar); ok {
 			if bar.barWidth == 0 && bar.sameAutoSize {
-				_, barWidths[index] = bar.render(0, 0, 0)
+				_, pfxWidths[index], barWidths[index], afxWidths[index] = bar.render(0, 0, 0)
 			}
 		}
 	}
 	if mainItem != nil {
 		if mainBar, ok := mainItem.(*Bar); ok && mainBar.barWidth == 0 && mainBar.sameAutoSize {
-			_, barWidths[len(barWidths)-1] = mainBar.render(0, 0, 0)
+			_, pfxWidths[len(barWidths)-1], barWidths[len(barWidths)-1], afxWidths[len(barWidths)-1] = mainBar.render(0, 0, 0)
 		}
 	}
-	var smallestBar int
+	var (
+		smallestBarPfxWidth int
+		smallestBarWidth    int
+		smallestBarAfxWidth int
+	)
 	for i := range barWidths {
 		if barWidths[i] > 0 {
-			if smallestBar == 0 || barWidths[i] < smallestBar {
-				smallestBar = barWidths[i]
+			if smallestBarWidth == 0 || barWidths[i] < smallestBarWidth {
+				smallestBarPfxWidth = pfxWidths[i]
+				smallestBarWidth = barWidths[i]
+				smallestBarAfxWidth = afxWidths[i]
 			}
 		}
 	}
@@ -167,10 +175,9 @@ func updater() []byte {
 	for index, item := range items {
 		if bar, ok := item.(*Bar); ok {
 			if bar.barWidth == 0 && bar.sameAutoSize {
-				barDiff := barWidths[index] - smallestBar
-				pfxPadding := barDiff / 2
-				apfPadding := barDiff - pfxPadding
-				barStr, _ := bar.render(pfxPadding, smallestBar, apfPadding)
+				pfxPadding := smallestBarPfxWidth - pfxWidths[index]
+				apfPadding := smallestBarAfxWidth - afxWidths[index]
+				barStr, _, _, _ := bar.render(pfxPadding, smallestBarWidth, apfPadding)
 				output.WriteString(barStr)
 			} else {
 				// progress bar but without same auto size
@@ -189,10 +196,9 @@ func updater() []byte {
 			output.WriteRune('\n')
 		}
 		if mainBar, ok := mainItem.(*Bar); ok && mainBar.barWidth == 0 && mainBar.sameAutoSize {
-			barDiff := barWidths[len(barWidths)-1] - smallestBar
-			pfxPadding := barDiff / 2
-			apfPadding := barDiff - pfxPadding
-			barStr, _ := mainBar.render(pfxPadding, smallestBar, apfPadding)
+			pfxPadding := smallestBarPfxWidth - pfxWidths[len(barWidths)-1]
+			apfPadding := smallestBarAfxWidth - afxWidths[len(barWidths)-1]
+			barStr, _, _, _ := mainBar.render(pfxPadding, smallestBarWidth, apfPadding)
 			output.WriteString(barStr)
 		} else {
 			output.WriteString(mainItem.String())

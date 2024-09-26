@@ -325,16 +325,15 @@ func (pb *Bar) Progress() float64 {
 
 // String returns the string representation of the progress bar.
 func (pb *Bar) String() (line string) {
-	line, _ = pb.render(0, 0, 0)
+	line, _, _, _ = pb.render(0, 0, 0)
 	return
 }
 
 // Render returns the string representation of the progress bar with len of its 3 groups.
-func (pb *Bar) render(pfxPadding, overwriteBarWidth, afxPadding int) (line string, barWidth int) {
+func (pb *Bar) render(pfxPadding, overwriteBarWidth, afxPadding int) (line string, pfxWidth, barWidth, afxWidth int) {
 	// Prepend fx
 	pfx := make([]string, len(pb.prependFuncs))
 	pfxLen := 0
-	pfxWidth := 0
 	for index, fx := range pb.prependFuncs {
 		pfx[index] = fx(pb)
 		pfxLen += len(pfx[index])
@@ -345,7 +344,6 @@ func (pb *Bar) render(pfxPadding, overwriteBarWidth, afxPadding int) (line strin
 	// Append fx
 	afx := make([]string, len(pb.appendFuncs))
 	afxLen := 0
-	afxWidth := 0
 	for index, fx := range pb.appendFuncs {
 		afx[index] = fx(pb)
 		afxLen += len(afx[index])
