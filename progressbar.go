@@ -190,7 +190,11 @@ func getRemainingTime(start time.Time, progress float64) string {
 	if progress == 0 {
 		return "∞"
 	}
-	return "~" + time.Duration((1-progress)*(float64(time.Since(start))/progress)).Round(time.Second).String()
+	timeLeft := time.Duration((1 - progress) * (float64(time.Since(start)) / progress))
+	if timeLeft < time.Second {
+		return "~" + timeLeft.Round(time.Second).String()
+	}
+	return timeLeft.Round(time.Minute).String()
 }
 
 // BarRunes is the composition of a progress bar.
