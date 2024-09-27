@@ -356,7 +356,7 @@ func (pb *Bar) renderAutoSize(pfx, afx string, lineWidth, pfxWidth, pfxPadding, 
 		builder.WriteString(strings.Repeat(" ", afxPadding))
 	}
 	builder.WriteString(afx)
-	// if pb.internalPaddingRight {
+	// if !pb.internalPaddingRight {
 	// 	builder.WriteString(strings.Repeat(" ", afxPadding))
 	// }
 	// done
