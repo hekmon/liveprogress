@@ -352,7 +352,7 @@ func (pb *Bar) renderAutoSize(pfx, afx string, lineWidth, pfxWidth, pfxPadding, 
 	// bar
 	builder.WriteString(pb.renderProgressBar(lineWidth, pfxWidth, afxWidth, barWidth))
 	// afx
-	if !pb.internalPaddingRight {
+	if pb.internalPaddingRight {
 		builder.WriteString(strings.Repeat(" ", afxPadding))
 	}
 	builder.WriteString(afx)
