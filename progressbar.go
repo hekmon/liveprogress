@@ -356,6 +356,7 @@ func (pb *Bar) renderAutoSize(pfx, afx string, lineWidth, pfxWidth, pfxPadding, 
 		builder.WriteString(strings.Repeat(" ", afxPadding))
 	}
 	builder.WriteString(afx)
+	// not necessary to add trailling whitespaces
 	// if !pb.internalPaddingRight {
 	// 	builder.WriteString(strings.Repeat(" ", afxPadding))
 	// }
