@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hekmon/liveterm/v2"
+	"github.com/mattn/go-isatty"
 )
 
 var (
@@ -22,6 +23,7 @@ var (
 )
 
 var (
+	disabled    bool
 	items       []fmt.Stringer
 	mainItem    fmt.Stringer
 	output      bytes.Buffer
@@ -87,6 +89,11 @@ func SetMainLineAsBar(opts ...BarOption) (pb *Bar) {
 // It is important to note that Output (default to os.Stdout) should not be used directly (for example with fmt.Print*()) after Start() is called and until Stop() is called.
 // See ByPass() to get a writer that will bypass the live progress and write definitive lines directly to the output without disrupting live progress.
 func Start() (err error) {
+	if !isatty.IsTerminal(Output.Fd()) {
+		disabled = true
+		fmt.Fprintln(Output, "Live progress disabled because Output is not a terminal. Bypass writes will still be printed.")
+		return
+	}
 	liveterm.RefreshInterval = RefreshInterval
 	liveterm.Output = Output
 	liveterm.SetRawUpdateFx(updater)
@@ -97,12 +104,14 @@ func Start() (err error) {
 // Stop stops the live progress and remove all registered bars and custom lines from its internal state.
 // Set clear to true to clear the liveprogress output. After this call, Output can be used directly again (no need to use ByPass() anymore).
 func Stop(clear bool) (err error) {
-	// if clear is false, liveterm will call updater one last time
-	err = liveterm.Stop(clear)
-	// Add a newline to separate the live progress output if needed
-	if !clear {
-		if output.Len() > 0 && output.Bytes()[output.Len()-1] != '\n' {
-			fmt.Fprint(Output, "\n")
+	if !disabled {
+		// if clear is false, liveterm will call updater one last time
+		err = liveterm.Stop(clear)
+		// Add a newline to separate the live progress output if needed
+		if !clear {
+			if output.Len() > 0 && output.Bytes()[output.Len()-1] != '\n' {
+				fmt.Fprint(Output, "\n")
+			}
 		}
 	}
 	RemoveAll()
