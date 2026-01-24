@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"sync"
-	"time"
 
 	"github.com/hekmon/liveprogress/v2"
 	"github.com/hekmon/liveprogress/v2/colors"
@@ -27,7 +26,6 @@ var (
 func main() {
 	// Global config (these are already the default values)
 	liveprogress.Output = os.Stdout
-	liveprogress.RefreshInterval = 100 * time.Millisecond
 	// Go
 	if err := liveprogress.Start(); err != nil {
 		panic(err)

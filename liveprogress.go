@@ -13,9 +13,17 @@ import (
 )
 
 var (
-	// Config values (used by Start())
-	RefreshInterval = 100 * time.Millisecond // RefreshInterval is the time between each refresh of the terminal. Recommended value, setting it lower might flicker the terminal and increase CPU usage.
-	Output          = os.Stdout              // Output is the writer the live progress will write to.
+	/*
+		Config values (used by Start())
+	*/
+
+	// Overwrite liveterm default RefreshInterval if different from 0.
+	// Overwritting it will prevent usage of liveterm's LIVETERM_UPDATE_FREQ_HZ env var to change refresh rate at runtime.
+	// My recommendation would be to leave it alone to use liveterm default value and adjust it at runtime with the LIVETERM_UPDATE_FREQ_HZ env var if necessary.
+	// Mostly kept as backward compatibility.
+	RefreshInterval time.Duration = 0
+	// Output is the writer the live progress will write to.
+	Output = os.Stdout
 	// BarAutoSizeSameSize sets progress bars with automatic width (width of 0) to automatically adjust theirs width (and center themself) to all others automatic width bars.
 	// By default left and right decorators will have external padding to center all the automatic length bars, eaning that white spaces will be added to the left for left
 	// decorators group and to the right for right decorators group. See WithInternalPadding() at bar creation to change the padding position.
@@ -94,7 +102,10 @@ func Start() (err error) {
 		fmt.Fprintln(Output, "Live progress disabled because Output is not a terminal. Bypass writes will still be printed.")
 		return
 	}
-	liveterm.RefreshInterval = RefreshInterval
+	if RefreshInterval != 0 {
+		// Use forced value
+		liveterm.RefreshInterval = RefreshInterval
+	}
 	liveterm.Output = Output
 	liveterm.SetRawUpdateFx(updater)
 	liveterm.HideCursor = true
